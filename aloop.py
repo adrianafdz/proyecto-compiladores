@@ -34,14 +34,14 @@ reserved = {
     'to' : 'TO',
     'number' : 'NUMBER',
     'string' : 'STRING',
-    'nothing' : 'NOTHING',Z
+    'nothing' : 'NOTHING',
     'to_number' : 'TO_NUMBER',
     'to_string' : 'TO_STRING',
     'input' : 'INPUT',
     'print' : 'PRINT'
 }
 
-literals = ['=', ';', ':', ',', '{', '}', '(', ')', '[', ']']
+literals = ['=', ';', ':', ',', '{', '}', '(', ')', '[', ']', '&']
 
 tokens = tokens + list(reserved.values())
 
