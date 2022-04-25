@@ -1,0 +1,70 @@
+program prueba2;
+
+type objeto {
+    def number : x;
+
+    func f1(): number {
+        def number : d;
+        d = 8 + 2 * 3 - (d - 3);
+        call ret((d+2) * 3);
+    }
+}
+
+type objeto : hereda {
+    def number : x;
+
+    func f1(): number {
+        def number : d;
+        d = 8 + 2 * 3 - (d - 3);
+        call ret((d+2) * 3);
+    }
+}
+
+def number : x;
+def string[1][y+1] : w;
+def objeto: y, x;
+
+func f1() : number {
+    def number : d;
+    call ret(d);
+}
+
+func f1(number x, string y) : nothing {
+    def number : d;
+    d = 3 +3;
+}
+
+main() {
+    d = 8 + 2 * 3 - (x - 3);
+    y[1] = 1 +3 * (x[1] - 2);
+    y[x][y] = 5 * a - (y[1] - r / 4);
+
+    if (d - 1 > 0) then {
+        call print("hola");
+        call print(d);
+        call print(d & "hola" & s);
+    }
+
+    if (d - 1 > 0) then {
+        call to_number("3");
+        call to_number(s);
+    } else {
+        call to_string(x+2);
+    }
+
+    while(x+1 <> 2) do {
+        x = w[2]+1;
+        x = w[2][y+1] - -1;
+    }
+
+    for x to 3 {
+        call y:f1();
+        call f2(8, (x+2));
+    }
+
+    d = call t(z);
+    d = call t(z) + 8 * (call t(z) - 3);
+
+    call input(x);
+}
+end;

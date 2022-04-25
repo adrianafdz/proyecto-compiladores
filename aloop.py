@@ -46,7 +46,6 @@ literals = ['=', ';', ':', ',', '{', '}', '(', ')', '[', ']', '&']
 tokens = tokens + list(reserved.values())
 
 t_ignore  = ' \t'
-t_TOSTR = r'\.string'
 t_COMP = r'(<>|<|>|==)'
 t_OPTERM = r'\+|\-'
 t_OPFACT = r'\*|\/'
@@ -58,9 +57,14 @@ def t_ID(t):
     return t
 
 def t_NUM(t):
-    r'[0-9]+\.[0-9]+'
+    r'[0-9]+(\.[0-9]+)?'
     t.value = float(t.value)
     return t
+
+# Track line numbers
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 
 # Lexical error handling rule
 def t_error(t):
@@ -77,91 +81,149 @@ def t_eof(t):
 ####################################################
 # YACC (parser)
 
-# GRAMATICA
-# start -> PROGRAM ID ';' clases vars funciones MAIN '(' ')' '{' estatutos '}' END ';'
+def p_start(p):
+    '''start : PROGRAM ID ';' clases vars funciones MAIN '(' ')' '{' estatutos '}' END ';' '''
 
-# clases -> clases clase
-#         | empty
+def p_clases(p):
+    '''clases : clases clase
+              | empty'''
 
-# clase -> TYPE ID ':' ID '{' cvars funciones '}' 
-#       | TYPE ID '{' cvars funciones '}'
+def p_clase(p):
+    '''clase : TYPE ID ':' ID '{' cvars funciones '}' 
+             | TYPE ID '{' cvars funciones '}' '''
 
-# funciones -> funciones funcion 
-#           | empty
+def p_funciones(p):
+    '''funciones : funciones funcion
+                  | empty'''
 
-# funcion -> FUNC ID '(' params ')' ':' tipo '{' vars estatutos '}'
-#          | FUNC ID '(' params ')' ':' NOTHING '{' vars estatutos '}'
+def p_funcion(p):
+    '''funcion : FUNC ID '(' params ')' ':' tipo '{' vars estatutos '}'
+               | FUNC ID '(' params ')' ':' NOTHING '{' vars estatutos '}' '''
 
-# vars -> vars DEF tipo dimension ':' lista_id ';'
-#       | vars DEF tipo ID ':' lista_id ';'
-#       | empty
+def p_vars(p):
+    '''vars : vars DEF tipo dimension ':' lista_id ';'
+            | vars DEF ID ':' lista_id ';'
+            | empty'''
 
-# cvars -> cvars DEF tipo dimension ':' lista_id ';'
-#        | empty
+def p_cvars(p):
+    '''cvars : cvars DEF tipo dimension ':' lista_id ';'
+             | empty'''
 
-# lista_id -> ID | lista_id ',' ID
+def p_lista_id(p): 
+    '''lista_id : ID 
+                | lista_id ',' ID'''
 
-# dimension -> '[' expresion ']' | '[' expresion ']' '[' expresion ']' | empty
+def p_dimension(p): 
+    '''dimension : '[' expresion ']' 
+                 | '[' expresion ']' '[' expresion ']' 
+                 | empty'''
 
-# tipo -> NUMBER | STRING
+def p_tipo(p): 
+    '''tipo : NUMBER 
+            | STRING'''
 
-# params -> pparams | empty
+def p_params(p): 
+    '''params : pparams 
+              | empty'''
 
-# pparams -> TIPO ID
-#          | pparams ',' TIPO ID
+def p_pparams(p):
+    '''pparams : tipo ID
+               | pparams ',' tipo ID'''
 
-# estatutos -> estatutos estatuto | empty
+def p_estatutos(p):
+    '''estatutos : estatutos estatuto 
+                 | empty'''
 
-# estatuto -> asignacion | while | for | condicion | call_func
+def p_estatuto(p):
+    '''estatuto : asignacion 
+                | while 
+                | for 
+                | condicion 
+                | CALL call_func ';' '''
 
-# call_func -> func | print | write | to_num | to_str
+def p_call_func(p):
+    '''call_func : func
+                 | input 
+                 | write 
+                 | to_num 
+                 | to_str
+                 | return '''
 
-# func -> CALL ID  '(' args ')' ';'
-#       | CALL ID  ':' ID '(' args ')' ';'
+def p_func(p):
+    '''func : ID  '(' args ')'
+            | ID  ':' ID '(' args ')' '''
 
-# args -> expresion 
-#       | args ',' expresion
+def p_args(p):
+    '''args : args_list
+            | empty'''
 
-# asignacion -> var '=' expresion ';'
+def p_args_list(p):
+    '''args_list : expresion 
+                 | args_list ',' expresion'''
 
-# var -> ID ':' ID dimension
-# var -> ID dimension
+def p_asignacion(p):
+    '''asignacion : var '=' expresion ';' '''
 
-# expresion -> exp
-#           | expresion COMP exp
+def p_var(p):
+    '''var : ID ':' ID dimension
+           | ID dimension'''
 
-# exp -> term
-#       | exp OPTERM term
+def p_expresion(p):
+    '''expresion : exp
+                 | expresion COMP exp'''
 
-# term -> fact
-#       | term OPTERM fact
+def p_exp(p):
+    '''exp : term
+           | exp OPTERM term'''
 
-# fact -> '(' expresion ')'
-#       | var
-#       | NUM
-#       | call_func
+def p_term(p):
+    '''term : fact
+            | term OPFACT fact'''
 
-# condicion -> IF '(' expresion ')' THEN '{' estatutos '}' condicionp
+def p_fact(p):
+    '''fact : '(' expresion ')'
+            | var
+            | NUM
+            | OPTERM NUM
+            | CALL call_func'''
 
-# condicionp -> ELSE '{' estatutos '}'
+def p_condicion(p):
+    '''condicion : IF '(' expresion ')' THEN '{' estatutos '}' condicionp'''
 
-# while -> WHILE '(' expresion ')' DO '{' estatutos '}'
+def p_condicionp(p):
+    '''condicionp : ELSE '{' estatutos '}'
+                  | empty '''
 
-# for -> FOR expresin TO expresion '{' estatutos '}'
+def p_while(p):
+    '''while : WHILE '(' expresion ')' DO '{' estatutos '}' '''
 
-# to_num -> TO_NUMBER '(' STR ')' ';'
-#         | TO_NUMBER '(' VAR ')' ';'
+def p_for(p):
+    '''for : FOR expresion TO expresion '{' estatutos '}' '''
 
-# to_str -> TO_STRING '(' expresion ')' ';'
+def p_to_num(p):
+    '''to_num : TO_NUMBER '(' STR ')' 
+              | TO_NUMBER '(' var ')' '''
 
-# input -> INPUT '(' VAR ')' ';'
+def p_to_str(p):
+    '''to_str : TO_STRING '(' expresion ')' '''
 
-# write -> PRINT '(' write_list ')' ';'
+def p_input(p):
+    '''input : INPUT '(' var ')' '''
 
-# write_list -> write_list '&' write_listp 
-#             | write_listp
+def p_write(p):
+    '''write : PRINT '(' write_list ')' '''
 
-# write_listp -> str | var | to_str
+def p_write_list(p):
+    '''write_list : write_list '&' write_listp
+                  | write_listp'''
+
+def p_write_listp(p):
+    '''write_listp : STR 
+                   | var 
+                   | to_str'''
+
+def p_return(p):
+    '''return : RET '(' expresion ')' '''
 
 def p_empty(p):
     'empty :'
@@ -186,7 +248,9 @@ parser = yacc.yacc(start='start')
 
 nombre = input('Nombre del archivo: ')
 print("")
-f = open(nombre, "r")
+f = open("./test/" + nombre, "r")
+# f = open(nombre, "r")
+
 s = f.read()
 
 if (len(s) > 0):
