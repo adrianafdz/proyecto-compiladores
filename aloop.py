@@ -220,7 +220,7 @@ def p_write_list(p):
 def p_write_listp(p):
     '''write_listp : STR 
                    | var 
-                   | to_str'''
+                   | CALL to_str'''
 
 def p_return(p):
     '''return : RET '(' expresion ')' '''
