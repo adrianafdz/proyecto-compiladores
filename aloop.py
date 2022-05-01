@@ -1,8 +1,22 @@
 import ply.lex as lex
 import ply.yacc as yacc
+from collections import deque
+from cuadruplos import Cuadruplos
+from cuboSemantico import cuboSemantico
 
 found_error = False
 empty_file = True
+
+cuadruplos = Cuadruplos()
+cubo = cuboSemantico()
+pilaOperandos = deque()
+pilaOperadores = deque()
+pilaTipos = deque()
+pilaSaltos = deque()
+cont = 1
+
+tipos = [0, 1, 2] # number, string, nothing
+curr_tipo = 0
 
 ####################################################
 # LEX (scanner)
@@ -121,6 +135,10 @@ def p_dimension(p):
 def p_tipo(p): 
     '''tipo : NUMBER 
             | STRING'''
+    if p[1] == 'NUMBER':
+        curr_tipo = 0
+    elif p[1] == 'STRING':
+        curr_tipo = 1
 
 def p_params(p): 
     '''params : pparams 
@@ -162,7 +180,7 @@ def p_args_list(p):
                  | args_list ',' expresion'''
 
 def p_asignacion(p):
-    '''asignacion : var '=' expresion ';' '''
+    '''asignacion : var '=' f_oper expresion ';' '''
 
 def p_var(p):
     '''var : ID ':' ID dimension
@@ -170,22 +188,105 @@ def p_var(p):
 
 def p_expresion(p):
     '''expresion : exp
-                 | expresion COMP exp'''
+                 | expresion COMP f_oper exp f_expres'''
+
+def p_f_expres(p):
+    "f_expres :"
+    if len(pilaOperadores) > 0 and pilaOperadores[-1] in ['<>', '<', '>', '==']:
+        oper = pilaOperadores.pop()
+        ro = pilaOperandos.pop()
+        lo = pilaOperandos.pop()
+        rt = pilaTipos.pop()
+        lt = pilaTipos.pop()
+        tres = cubo.check(oper, lt, rt)
+
+    if tres == -1:
+            print("ERROR: Type Mismatch")
+    else:
+        res = "temp"
+        cuadruplos.add(oper, lo, ro, res)
+
+        pilaOperandos.append(res)
+        pilaTipos.append(tres)  
 
 def p_exp(p):
     '''exp : term
-           | exp OPTERM term'''
+           | exp OPTERM f_oper term f_exp'''
+
+# Funcion semantica - resolver operaciones + -
+def p_f_exp(p):
+    "f_exp :"
+    if len(pilaOperadores) > 0 and pilaOperadores[-1] in '-+':
+        ro = pilaOperandos.pop()
+        rt = pilaTipos.pop()
+        lo = pilaOperandos.pop()
+        lt = pilaTipos.pop()
+        oper = pilaOperadores.pop()
+        tres = cubo.check(oper, rt, lt)
+
+        if tres == -1:
+            print("ERROR: Type Mismatch")
+        else:
+            res = "temp"
+            cuadruplos.add(oper, lo, ro, res)
+
+            pilaOperandos.append(res)
+            pilaTipos.append(tres)  
 
 def p_term(p):
     '''term : fact
-            | term OPFACT fact'''
+            | term OPFACT f_oper fact f_term'''
+
+# Funcion semantica - resolver operaciones + /
+def p_f_term(p):
+    "f_term :"
+    if len(pilaOperadores) > 0 and pilaOperadores[-1] in '*/':
+        ro = pilaOperandos.pop()
+        rt = pilaTipos.pop()
+        lo = pilaOperandos.pop()
+        lt = pilaTipos.pop()
+        oper = pilaOperadores.pop()
+        tres = cubo.check(oper, rt, lt)
+
+        if tres == -1:
+            print("ERROR: Type Mismatch")
+        else:
+            res = "temp"
+            cuadruplos.add(oper, lo, ro, res)
+
+            pilaOperandos.append(res)
+            pilaTipos.append(tres)      
+
+# Funcion semantica para meter operador a la pilaOperadores
+def p_f_oper(p):
+    "f_oper :"
+    pilaOperadores.append(p[-1])
 
 def p_fact(p):
-    '''fact : '(' expresion ')'
+    '''fact : '(' lparen expresion ')' rparen
             | var
-            | NUM
+            | NUM f_fact
             | OPTERM NUM
             | CALL call_func'''
+    if p[1] == '-':
+        curr_tipo = 0
+        pilaOperandos.append(-p[2])
+    elif p[1] == '+':
+        curr_tipo = 0
+        pilaOperandos.append(p[2])
+    pilaTipos.append(0)
+
+def p_lparen(p):
+    "lparen :"
+    pilaOperadores.append(p[-1])
+
+def p_rparen(p):
+    "rparen :"
+    pilaOperadores.pop()
+
+def p_f_fact(p):
+    "f_fact :"
+    pilaOperandos.append(p[-1])
 
 def p_condicion(p):
     '''condicion : IF '(' expresion ')' THEN '{' estatutos '}' condicionp'''
@@ -257,3 +358,4 @@ if (len(s) > 0):
     empty_file = False
 
 parser.parse(s)
+print(cuadruplos)

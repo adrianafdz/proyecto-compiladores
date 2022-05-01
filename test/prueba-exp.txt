@@ -1,0 +1,7 @@
+program prueba3;
+
+main() {
+    d = 1 < 2 + 3;
+}
+
+end;
