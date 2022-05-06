@@ -27,11 +27,14 @@ class cuboSemantico:
             '<' : 5,
             '<>' : 6,
             '==' : 7,
-            '&' : 8
+            '&' : 8,
+            'leer' : 9,
+            'escribir' : 10,
+            'regresar' : 11
         }
 
         self.cuboSeman =  [[  # number
-                            #     +   -   *   /   >   <  <>  ==   &
+                            #     +   -   *   /   >   <  <>  ==   & 
                                 [ 0,  0,  0,  0,  0,  0,  0,  0, -1], # number
                                 [-1, -1, -1, -1, -1, -1, -1, -1, -1]  # string
                             ], [ # string
