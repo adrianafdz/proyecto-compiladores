@@ -49,3 +49,11 @@ Análisis Léxico y Sintáctico
 
 ## Segundo Avance
 Tabla de Variables y Cubo Semántico
+
+## Tercer Avance
+Semántica, Generación de Código de Expresiones y Estatutos Lineales.
+
+Se definió los cuadruplos como una tupla de tuplas siendo el operador las palabras reservadas de nuestro lenjuage de programacion para los estatutos lineales:
+- leer
+- escribir 
+- regresar
