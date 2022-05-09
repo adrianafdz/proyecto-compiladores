@@ -141,7 +141,7 @@ def p_clase(p):
 def p_f_startclass(p):
     "f_startclass :"
     global dirFuncObj
-    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), curr_tipo)
+    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), 3)
     curr_func.append(p[-1])
     dirFuncObj = curr_dir[-1].create_dir_for_obj(curr_func[-1])
 
@@ -186,6 +186,7 @@ def p_f_endfunc(p):
     "f_endfunc :"
     curr_dir[-1].delete_var_table(curr_func[-1])
     curr_func.pop()
+    cuadruplos.add("GOBACK", None, None, None) # cuadruplo para regresar al programa principal
 
 def p_vars(p):
     '''vars : vars DEF tipo dimension ':' lista_id ';'
@@ -194,8 +195,13 @@ def p_vars(p):
 
 def p_f_varsobj(p):
     "f_varsobj :"
-    global curr_tipo, dimension
-    curr_tipo = p[-1]
+    global curr_tipo, dimension, found_error
+    tipo, mem = curr_dir[0].get_func(p[-1])
+    if tipo == 3:
+        curr_tipo = p[-1]
+    else:
+        print("UNDECLARED OBJECT, line ", lexer.lineno)
+        found_error = True
     dimension = None
 
 def p_cvars(p):
@@ -297,8 +303,31 @@ def p_call_func(p):
                  | return '''
 
 def p_func(p):
-    '''func : ID  '(' args ')'
-            | ID  ':' ID '(' args ')' '''
+    '''func : ID  f_verify_func '(' args ')'
+            | ID  f_varobj ':' ID f_verify_func_composite '(' args ')' '''
+
+def p_f_verify_func(p):
+    "f_verify_func :"
+    global found_error
+    f_type, f_start = curr_dir[0].get_func(p[-1])
+    if f_type == -1:
+        print("UNDECLARED FUNCTION, line", lexer.lineno)
+        found_error = True
+    else:
+        cuadruplos.add("GOTOSUB", None, None, f_start)
+
+def p_f_verify_func_composite(p):
+    "f_verify_func_composite :"
+    global found_error
+    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+    obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
+    f_type, f_start = obj_funcs.get_func(p[-1])
+
+    if f_type == -1:
+        print("UNDECLARED FUNCTION, line", lexer.lineno)
+        found_error = True
+    else:
+        cuadruplos.add("GOTOSUB", None, None, f_start)
 
 def p_args(p):
     '''args : args_list

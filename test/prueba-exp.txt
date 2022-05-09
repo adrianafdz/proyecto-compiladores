@@ -1,20 +1,24 @@
 program prueba3;
 
 type objeto {
-    def number : x;
-    def number : x2;
-
-    func fobj(string x2): nothing {
-        def number : d;
-
+    func f2(number x): nothing {
+        def number : r;
+        r = 2 + 4;
     }
 }
 
+def objeto : o;
 def number : r;
-def objeto: y;
+
+func f1(string t): nothing {
+    def number : d;
+    d = 2 + 3;
+}
+
 
 main() {
-    r = 3 + y:x;
+    r = 3 * 2;
+    call o:f2();
 }
 
 end;

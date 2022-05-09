@@ -31,6 +31,13 @@ class dirFunc:
             return False
         return True
 
+    def get_func(self, nombre): # regresa tipo y en qué cuadruplo empieza
+        if nombre in self.dir_func:
+            return (self.dir_func[nombre]['tipo'], self.dir_func[nombre]['inicio'])
+        else:
+            print("Error: la funcion", str(nombre), "no existe")
+            return (-1, -1)
+
     def update_func_type(self, nombre, tipo):
         if nombre in self.dir_func:
             self.dir_func[nombre]['tipo'] = tipo
@@ -68,6 +75,13 @@ class dirFunc:
     def get_vars_from_obj(self, nombre):
         if nombre in self.dir_func:
             return self.dir_func[nombre]['vars']
+        else:
+            print("Error: el objeto", str(nombre), "no existe")
+            return None
+
+    def get_dir_from_obj(self, nombre):
+        if nombre in self.dir_func:
+            return self.dir_func[nombre]['funcs']
         else:
             print("Error: el objeto", str(nombre), "no existe")
             return None
