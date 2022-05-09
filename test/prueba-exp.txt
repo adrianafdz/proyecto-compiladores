@@ -19,6 +19,14 @@ func f1(string t): nothing {
 main() {
     r = 3 * 2;
     call o:f2();
+
+    if (r == 4) then {
+        r = r + 2 * 5;
+    } else {
+        r = r - 8 / 2;
+    }
+
+    r = 10 / 2;
 }
 
 end;

@@ -125,7 +125,7 @@ def p_f_prog(p):
 def p_f_end(p):
     "f_end : "
     global dirLocal
-    print(curr_dir[-1])
+    # print(curr_dir[-1])
     curr_dir[-1].delete_dir()
     curr_func.pop()
     dirLocal = 7000 # reinicia
@@ -515,11 +515,33 @@ def p_f_fact(p):
         pilaOperandos.append(var_mem)
 
 def p_condicion(p):
-    '''condicion : IF '(' expresion ')' THEN '{' estatutos '}' condicionp'''
+    '''condicion : IF '(' expresion ')' f_if THEN '{' estatutos '}' condicionp f_endif'''
 
 def p_condicionp(p):
-    '''condicionp : ELSE '{' estatutos '}'
+    '''condicionp : ELSE f_else '{' estatutos '}'
                   | empty '''
+
+def p_f_if(p):
+    "f_if :"
+    exp_type = pilaTipos.pop()
+    if exp_type == 0:
+        res = pilaOperandos.pop()
+        cuadruplos.add("GOTOF", res, None, None)
+        pilaSaltos.append(cuadruplos.get_cont() - 1)
+    else:
+        print("ERROR: Type mismatch, line", lexer.lineno)
+
+def p_f_endif(p):
+    "f_endif :"
+    fin = pilaSaltos.pop()
+    cuadruplos.fill(fin, cuadruplos.get_cont())
+
+def p_f_else(p):
+    "f_else :"
+    cuadruplos.add("GOTO", None, None, None)
+    falso = pilaSaltos.pop()
+    pilaSaltos.append(cuadruplos.get_cont() - 1)
+    cuadruplos.fill(falso, cuadruplos.get_cont())
 
 def p_while(p):
     '''while : WHILE '(' expresion ')' DO '{' estatutos '}' '''

@@ -12,10 +12,15 @@ class Cuadruplos():
     def get_cont(self):
         return self.cont
 
+    def fill(self, cuadruplo, value):
+        self.cuadruplos[cuadruplo-1] = self.cuadruplos[cuadruplo-1][:-1] + tuple([value]) 
+
     def __str__(self):
         output = ""
+        i = 1
         for c in self.cuadruplos:
-            output += str(c) + '\n'
+            output += str(i) + ":- " + str(c) + '\n'
+            i += 1
         return output
     
     #Leer: input()
