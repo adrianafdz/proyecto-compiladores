@@ -47,7 +47,7 @@ curr_dir.append(dirFuncObj)
 # <FUNCION> - EN UN OBJETO
 # Agregar id a curr_dir.top(), curr_func.push(id)
 id = "classfunc1"
-curr_dir[-1].add_func(id)
+curr_dir[-1].add_func(id, 1)
 curr_func.append(id)
 
 # <PARAMS>
@@ -97,7 +97,7 @@ curr_dir[-1].add_var(curr_func[-1], id, curr_tipo, dimension, 0)
 # <FUNCION> - global
 # Agregar id a curr_dir.top(), curr_func.push(id)
 id = "func1"
-curr_dir[-1].add_func(id)
+curr_dir[-1].add_func(id, 2)
 curr_func.append(id)
 
 # <PARAMS>

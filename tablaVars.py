@@ -35,6 +35,12 @@ class tablaVars:
             }
             return True
 
+    def get_var(self, nombre):
+        if self.check_var(nombre):
+            return (self.tabla_vars[nombre]['tipo'], self.tabla_vars[nombre]['memoria'])
+        else:
+            return (-1, -1)
+
     #Regresar los datos de una variable especifica
     def search_var(self, nombre):
         if self.check_var(nombre):
@@ -47,7 +53,7 @@ class tablaVars:
         if self.check_var(nombre):
             return self.tabla_vars[nombre]['tipo']
         else:
-            return None
+            return -1
 
     #Regresar la dimesion de una variable especifica
     def searchMem_var(self, nombre):

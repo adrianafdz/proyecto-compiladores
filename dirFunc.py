@@ -3,8 +3,11 @@
 #
 #   Los atributos semánticos que contiene son:
 #   - nombre de la funcion
-#   - tipo 
+#   - tipo
+#   - starts (en qué cuádruplo empieza)
+#   - recursos (tamaño de memoria que ocupa)
 #   - tabla de variables
+#   - lista de tipos de los parámetros
 #
 ###------------------
 
@@ -16,11 +19,12 @@ class dirFunc:
     def __init__(self, funcs = {}):
         self.dir_func = funcs.copy()
 
-    def add_func(self, nombre, tipo = 2):
+    def add_func(self, nombre, cuadStart, tipo = 2):
         if nombre not in self.dir_func:
             self.dir_func[nombre] = {
                 'tipo': tipo,
-                'vars' : tablaVars()
+                'vars' : tablaVars(),
+                'inicio': cuadStart
             }
         else:
             print("Error: la funcion", str(nombre), "ya existe")
@@ -37,11 +41,21 @@ class dirFunc:
 
     def add_var(self, func, nombre, tipo, dimension, memoria):
         if nombre not in self.dir_func:
-            return self.dir_func[func]['vars'].add_var(nombre, tipo, dimension, memoria)
+            self.dir_func[func]['vars'].add_var(nombre, tipo, dimension, memoria)
         else:
             print("Error: la variable", str(nombre), "ya existe")
             return False
         return True
+
+    def get_var(self, func, nombre):
+        # regresa el tipo y la direccion de memoria
+        return self.dir_func[func]['vars'].get_var(nombre) 
+
+    def add_param(self, func, tipo):
+        if 'params' not in self.dir_func[func]:
+            self.dir_func[func]['params'] = [tipo]
+        else:
+            self.dir_func[func]['params'].append(tipo)
 
     def create_dir_for_obj(self, nombre):
         if nombre in self.dir_func:
@@ -51,9 +65,9 @@ class dirFunc:
             print("Error: el objeto", str(nombre), "no existe")
             return None
 
-    def get_dir_from_obj(self, nombre):
+    def get_vars_from_obj(self, nombre):
         if nombre in self.dir_func:
-            return self.dir_func[nombre]['funcs']
+            return self.dir_func[nombre]['vars']
         else:
             print("Error: el objeto", str(nombre), "no existe")
             return None

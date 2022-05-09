@@ -3,9 +3,14 @@ from tablaVars import tablaVars
 class Cuadruplos():
     def __init__(self):
         self.cuadruplos = list()
+        self.cont = 1
 
     def add(self, op, izq, der, res):
         self.cuadruplos.append((op, izq, der, res))
+        self.cont += 1
+
+    def get_cont(self):
+        return self.cont
 
     def __str__(self):
         output = ""
