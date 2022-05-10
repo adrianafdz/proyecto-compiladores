@@ -1,3 +1,4 @@
+from inspect import _V_cont
 import ply.lex as lex
 import ply.yacc as yacc
 from collections import deque
@@ -546,8 +547,60 @@ def p_f_else(p):
 def p_while(p):
     '''while : WHILE '(' expresion ')' DO '{' estatutos '}' '''
 
+def p_f_while(p):
+    pilaSaltos.append(cuadruplos.get_cont())
+
+def p_f_exprwhile(p):
+    exp_type = pilaTipos.pop()
+    if exp_type == 0:
+        res = pilaOperandos.pop()
+        cuadruplos.add("GOTOF", res, None, None)
+        pilaSaltos.append(cuadruplos.get_cont() - 1)
+    else:
+        print("ERROR: Type mismatch, line", lexer.lineno)
+
+def p_f_endwhile(p):
+    "f_endwhile :"
+    fin = pilaSaltos.pop()
+    ret = pilaSaltos.pop()
+    cuadruplos.add("GOTO", None, None, ret)
+    cuadruplos.fill(fin, cuadruplos.get_cont())
+
 def p_for(p):
     '''for : FOR expresion TO expresion '{' estatutos '}' '''
+'''
+def p_f_for1(p):
+    exp_type = pilaTipos.pop()
+    if exp_type == 0:
+        exp = pilaOperandos.pop()
+        vcontrol = pilaOperadores.top()
+        control_type = pilaTipos.top()
+        #Semantica
+        tipo_res = Semantica ["=", control_type, exp_type]
+        if tipo_res == 0: 
+            cuadruplos.add("=", exp, None, vcontrol)
+        else:
+            print("ERROR: Type mismatch, line", lexer.lineno)
+
+    else:
+        print("ERROR: Type mismatch, line", lexer.lineno)
+
+def p_f_for2(p):
+    exp_type = pilaTipos.pop()
+    if exp_type == 0:
+        exp = pilaOperandos.pop()
+        cuadruplos.add("=", exp, None, vfinal)
+        cuadruplos.add("<", vcontrol, vfinal, tx)
+        pilaSaltos.push(cuadruplos.get_cont()-1)
+
+def p_f_for3(p):
+    cuadruplos.add("+", vcontrol, 1, ty)
+    cuadruplos.add("=", ty, None, vcontrol)
+    fin = pilaSaltos.pop()
+    ret = pilaSaltos.pop()
+    cuadruplos.add("GOTO", None, None, ret)
+    cuadruplos.fill(fin, cuadruplos.get_cont())
+'''
 
 def p_to_num(p):
     '''to_num : TO_NUMBER '(' STR ')' 
