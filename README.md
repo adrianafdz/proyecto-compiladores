@@ -45,7 +45,13 @@ La declaración de funciones es:
 ```
 
 ## Primer Avance
-Análisis Léxico y Sintáctico
+Análisis Léxico y Sintáctico.
 
 ## Segundo Avance
-Tabla de Variables y Cubo Semántico
+Tabla de Variables y Cubo Semántico.
+
+## Tercer Avance
+Generación de código de expresiones y estatutos secuenciales.
+
+## Cuarto Avance
+Generación de código para condicionales (if-else) y bucles (while).
