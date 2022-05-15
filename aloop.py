@@ -111,18 +111,24 @@ def t_eof(t):
 # YACC (parser)
 
 def p_start(p):
-    '''start : PROGRAM f_start ID f_prog ';' clases vars funciones MAIN '(' ')' '{' estatutos '}' END f_end ';' '''
+    '''start : PROGRAM f_start ID f_prog ';' clases vars funciones MAIN f_main '(' ')' '{' estatutos '}' END f_end ';' '''
 
 def p_f_start(p):
     "f_start :"
     global dirFuncG
     dirFuncG = dirFunc()
     curr_dir.append(dirFuncG)
+    pilaSaltos.append(cuadruplos.get_cont())
+    cuadruplos.add("GOTO", None, None, None)
 
 def p_f_prog(p):
     "f_prog :"
     curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), curr_tipo)
     curr_func.append(p[-1])
+
+def p_f_main(p):
+    "f_main :"
+    cuadruplos.fill(pilaSaltos.pop(), cuadruplos.get_cont())
 
 def p_f_end(p):
     "f_end : "
@@ -659,7 +665,7 @@ def p_write_listp(p):
 
 def p_return(p):
     '''return : RET '(' expresion ')' '''
-    cuadruplos.add("RET", None, None, pilaOperandos.pop())
+    cuadruplos.add("RET", None, None, pilaOperandos[-1])
 
 def p_empty(p):
     'empty :'
@@ -696,3 +702,4 @@ parser.parse(s)
 
 print("\nCuadruplos:")
 print(cuadruplos)
+cuadruplos.generate_file()

@@ -50,3 +50,11 @@ class Cuadruplos():
             stackRetorno.append(texto) #Guarda el valor 
         else:
             print("error")
+
+    def generate_file(self):
+        f = open("codint.txt", "w")
+
+        for c in self.cuadruplos:
+            f.write(",".join([str(x) for x in c]) + "\n")
+
+        f.close()

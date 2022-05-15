@@ -2,10 +2,15 @@ program pruebafor;
 
 def number : x, y, z;
 
+func f1() : number {
+    def number : d;
+    call ret(d + 9);
+}
+
 main() {
     x = 1;
     y = 4;
-    z = 0;
+    z = call f1();
 
     for x + 1 to y * 3 {
         z = 3*2+1;
