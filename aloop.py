@@ -1,4 +1,3 @@
-from inspect import _V_cont
 import ply.lex as lex
 import ply.yacc as yacc
 from collections import deque
@@ -27,6 +26,8 @@ curr_tipo = 0
 dimension = None
 dim1 = None
 dim2 = None
+var_ctrl = None # para el for loop
+var_ctrl_type = None 
 
 curr_dir = deque()
 curr_func = deque()
@@ -545,12 +546,14 @@ def p_f_else(p):
     cuadruplos.fill(falso, cuadruplos.get_cont())
 
 def p_while(p):
-    '''while : WHILE '(' expresion ')' DO '{' estatutos '}' '''
+    '''while : WHILE f_while '(' expresion f_exprwhile ')' DO '{' estatutos '}' f_endwhile '''
 
 def p_f_while(p):
+    "f_while :"
     pilaSaltos.append(cuadruplos.get_cont())
 
 def p_f_exprwhile(p):
+    "f_exprwhile :"
     exp_type = pilaTipos.pop()
     if exp_type == 0:
         res = pilaOperandos.pop()
@@ -567,40 +570,45 @@ def p_f_endwhile(p):
     cuadruplos.fill(fin, cuadruplos.get_cont())
 
 def p_for(p):
-    '''for : FOR expresion TO expresion '{' estatutos '}' '''
-'''
-def p_f_for1(p):
-    exp_type = pilaTipos.pop()
-    if exp_type == 0:
-        exp = pilaOperandos.pop()
-        vcontrol = pilaOperadores.top()
-        control_type = pilaTipos.top()
-        #Semantica
-        tipo_res = Semantica ["=", control_type, exp_type]
-        if tipo_res == 0: 
-            cuadruplos.add("=", exp, None, vcontrol)
-        else:
-            print("ERROR: Type mismatch, line", lexer.lineno)
+    '''for : FOR expresion f_for_start TO expresion f_for_to '{' estatutos '}' f_for_end '''
 
+def p_f_for_start(p):
+    "f_for_start :"
+    global found_error, var_ctrl, var_ctrl_type
+
+    if pilaTipos.pop() == 0: # la expresion resulta en numerico
+        var_ctrl = pilaOperandos.pop()
     else:
+        found_error = True
         print("ERROR: Type mismatch, line", lexer.lineno)
 
-def p_f_for2(p):
-    exp_type = pilaTipos.pop()
-    if exp_type == 0:
-        exp = pilaOperandos.pop()
-        cuadruplos.add("=", exp, None, vfinal)
-        cuadruplos.add("<", vcontrol, vfinal, tx)
-        pilaSaltos.push(cuadruplos.get_cont()-1)
+def p_f_for_to(p):
+    "f_for_to :"
+    global found_error, dirTemp
 
-def p_f_for3(p):
-    cuadruplos.add("+", vcontrol, 1, ty)
-    cuadruplos.add("=", ty, None, vcontrol)
+    exp_type = pilaTipos.pop()
+    exp = pilaOperandos.pop()
+    if exp_type == 0:
+        pilaSaltos.append(cuadruplos.get_cont()) # para el retorno
+        cuadruplos.add(">", var_ctrl, exp, dirTemp) # el for será inclusive
+        cuadruplos.add("GOTOV", dirTemp, None, None)
+        pilaSaltos.append(cuadruplos.get_cont() - 1) # GotoV
+        dirTemp += 1
+    else:
+        found_error = True
+        print("ERROR: Type mismatch, line", lexer.lineno)
+
+def p_f_for_end(p):
+    "f_for_end :" 
+    global dirTemp
+    cuadruplos.add("+", var_ctrl, "1", dirTemp) # sumar 1 a la var de control
+    cuadruplos.add("=", dirTemp, None, var_ctrl) # asignar el resultado a la var de control
+    dirTemp += 1
+
     fin = pilaSaltos.pop()
-    ret = pilaSaltos.pop()
-    cuadruplos.add("GOTO", None, None, ret)
+    retorno = pilaSaltos.pop()
+    cuadruplos.add("GOTO", None, None, retorno)
     cuadruplos.fill(fin, cuadruplos.get_cont())
-'''
 
 def p_to_num(p):
     '''to_num : TO_NUMBER '(' STR ')' 

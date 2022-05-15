@@ -97,63 +97,69 @@ Rule 91    condicionp -> empty
 Rule 92    f_if -> <empty>
 Rule 93    f_endif -> <empty>
 Rule 94    f_else -> <empty>
-Rule 95    while -> WHILE ( expresion ) DO { estatutos }
-Rule 96    for -> FOR expresion TO expresion { estatutos }
-Rule 97    to_num -> TO_NUMBER ( STR )
-Rule 98    to_num -> TO_NUMBER ( var )
-Rule 99    to_str -> TO_STRING ( expresion )
-Rule 100   input -> INPUT ( var )
-Rule 101   write -> PRINT ( write_list )
-Rule 102   write_list -> write_list & write_listp
-Rule 103   write_list -> write_listp
-Rule 104   write_listp -> STR
-Rule 105   write_listp -> var
-Rule 106   write_listp -> CALL to_str
-Rule 107   return -> RET ( expresion )
-Rule 108   empty -> <empty>
+Rule 95    while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+Rule 96    f_while -> <empty>
+Rule 97    f_exprwhile -> <empty>
+Rule 98    f_endwhile -> <empty>
+Rule 99    for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
+Rule 100   f_for_start -> <empty>
+Rule 101   f_for_to -> <empty>
+Rule 102   f_for_end -> <empty>
+Rule 103   to_num -> TO_NUMBER ( STR )
+Rule 104   to_num -> TO_NUMBER ( var )
+Rule 105   to_str -> TO_STRING ( expresion )
+Rule 106   input -> INPUT ( var )
+Rule 107   write -> PRINT ( write_list )
+Rule 108   write_list -> write_list & write_listp
+Rule 109   write_list -> write_listp
+Rule 110   write_listp -> STR
+Rule 111   write_listp -> var
+Rule 112   write_listp -> CALL to_str
+Rule 113   return -> RET ( expresion )
+Rule 114   empty -> <empty>
 
 Terminals, with rules where they appear
 
-&                    : 102
-(                    : 1 15 16 57 58 81 89 95 97 98 99 100 101 107
-)                    : 1 15 16 57 58 81 89 95 97 98 99 100 101 107
+&                    : 108
+(                    : 1 15 16 57 58 81 89 95 103 104 105 106 107 113
+)                    : 1 15 16 57 58 81 89 95 103 104 105 106 107 113
 ,                    : 28 42 64
 :                    : 7 15 16 21 22 25 58 66
 ;                    : 1 1 21 22 25 50 65
 =                    : 65
-CALL                 : 50 85 106
+CALL                 : 50 85 112
 COMP                 : 72
 DEF                  : 21 22 25
 DO                   : 95
 ELSE                 : 90
 END                  : 1
-FOR                  : 96
+FOR                  : 99
 FUNC                 : 15 16
 ID                   : 1 7 7 8 15 16 22 27 28 41 42 57 58 58 66 66 67
 IF                   : 89
-INPUT                : 100
+INPUT                : 106
 MAIN                 : 1
 NOTHING              : 16
 NUM                  : 83 84
 NUMBER               : 37
 OPFACT               : 78
 OPTERM               : 75 84
-PRINT                : 101
+PRINT                : 107
 PROGRAM              : 1
-RET                  : 107
-STR                  : 97 104
+RET                  : 113
+STR                  : 103 110
 STRING               : 38
 THEN                 : 89
-TO                   : 96
-TO_NUMBER            : 97 98
-TO_STRING            : 99
+TO                   : 99
+TO_NUMBER            : 103 104
+TO_STRING            : 105
 TYPE                 : 7 8
 WHILE                : 95
 [                    : 30 31 31
 ]                    : 30 31 31
 error                : 
-{                    : 1 7 8 15 16 89 90 95 96
-}                    : 1 7 8 15 16 89 90 95 96
+{                    : 1 7 8 15 16 89 90 95 99
+}                    : 1 7 8 15 16 89 90 95 99
 
 Nonterminals, with rules where they appear
 
@@ -169,9 +175,9 @@ cvars                : 7 8 25
 dimension            : 21 25 66 67
 empty                : 6 14 23 26 32 40 45 62 91
 estatuto             : 44
-estatutos            : 1 15 16 44 89 90 95 96
+estatutos            : 1 15 16 44 89 90 95 99
 exp                  : 71 72 75
-expresion            : 30 31 31 63 64 65 72 81 89 95 96 96 99 107
+expresion            : 30 31 31 63 64 65 72 81 89 95 99 99 105 113
 f_clasepadre         : 7
 f_cvars              : 7 8
 f_dim1               : 30 31
@@ -181,9 +187,14 @@ f_end                : 1
 f_endclass           : 7 8
 f_endfunc            : 15 16
 f_endif              : 89
+f_endwhile           : 95
 f_exp                : 75
 f_expres             : 72
+f_exprwhile          : 95
 f_fact               : 83
+f_for_end            : 99
+f_for_start          : 99
+f_for_to             : 99
 f_if                 : 89
 f_nothing            : 16
 f_onedim             : 30
@@ -203,6 +214,7 @@ f_verify_func        : 57
 f_verify_func_composite : 58
 f_verify_type        : 67
 f_verify_type_composite : 66
+f_while              : 95
 fact                 : 77 78
 for                  : 48
 func                 : 51
@@ -219,13 +231,13 @@ start                : 0
 term                 : 74 75 78
 tipo                 : 15 21 25 41 42
 to_num               : 54
-to_str               : 55 106
-var                  : 65 82 98 100 105
+to_str               : 55 112
+var                  : 65 82 104 106 111
 vars                 : 1 15 16 21 22
 while                : 47
 write                : 53
-write_list           : 101 102
-write_listp          : 102 103
+write_list           : 107 108
+write_listp          : 108 109
 
 Parsing method: LALR
 
@@ -281,12 +293,12 @@ state 6
     (1) start -> PROGRAM f_start ID f_prog ; . clases vars funciones MAIN ( ) { estatutos } END f_end ;
     (5) clases -> . clases clase
     (6) clases -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    TYPE            reduce using rule 108 (empty -> .)
-    DEF             reduce using rule 108 (empty -> .)
-    MAIN            reduce using rule 108 (empty -> .)
-    FUNC            reduce using rule 108 (empty -> .)
+    TYPE            reduce using rule 114 (empty -> .)
+    DEF             reduce using rule 114 (empty -> .)
+    MAIN            reduce using rule 114 (empty -> .)
+    FUNC            reduce using rule 114 (empty -> .)
 
     clases                         shift and go to state 7
     empty                          shift and go to state 8
@@ -300,12 +312,12 @@ state 7
     (23) vars -> . empty
     (7) clase -> . TYPE ID f_startclass : ID f_clasepadre { cvars f_cvars funciones } f_endclass
     (8) clase -> . TYPE ID f_startclass { cvars f_cvars funciones } f_endclass
-    (108) empty -> .
+    (114) empty -> .
 
     TYPE            shift and go to state 12
-    DEF             reduce using rule 108 (empty -> .)
-    MAIN            reduce using rule 108 (empty -> .)
-    FUNC            reduce using rule 108 (empty -> .)
+    DEF             reduce using rule 114 (empty -> .)
+    MAIN            reduce using rule 114 (empty -> .)
+    FUNC            reduce using rule 114 (empty -> .)
 
     vars                           shift and go to state 9
     clase                          shift and go to state 10
@@ -328,11 +340,11 @@ state 9
     (22) vars -> vars . DEF ID f_varsobj : lista_id ;
     (13) funciones -> . funciones funcion
     (14) funciones -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
     DEF             shift and go to state 14
-    MAIN            reduce using rule 108 (empty -> .)
-    FUNC            reduce using rule 108 (empty -> .)
+    MAIN            reduce using rule 114 (empty -> .)
+    FUNC            reduce using rule 114 (empty -> .)
 
     funciones                      shift and go to state 13
     empty                          shift and go to state 15
@@ -445,10 +457,10 @@ state 20
     (30) dimension -> . [ expresion f_dim1 ] f_onedim
     (31) dimension -> . [ expresion f_dim1 ] [ expresion f_dim2 ] f_twodim
     (32) dimension -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
     [               shift and go to state 28
-    :               reduce using rule 108 (empty -> .)
+    :               reduce using rule 114 (empty -> .)
 
     dimension                      shift and go to state 27
     empty                          shift and go to state 29
@@ -582,11 +594,11 @@ state 32
     (8) clase -> TYPE ID f_startclass { . cvars f_cvars funciones } f_endclass
     (25) cvars -> . cvars DEF tipo dimension : lista_id ;
     (26) cvars -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    DEF             reduce using rule 108 (empty -> .)
-    }               reduce using rule 108 (empty -> .)
-    FUNC            reduce using rule 108 (empty -> .)
+    DEF             reduce using rule 114 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    FUNC            reduce using rule 114 (empty -> .)
 
     cvars                          shift and go to state 48
     empty                          shift and go to state 49
@@ -737,12 +749,12 @@ state 44
     (56) call_func -> . return
     (57) func -> . ID f_verify_func ( args )
     (58) func -> . ID f_varobj : ID f_verify_func_composite ( args )
-    (100) input -> . INPUT ( var )
-    (101) write -> . PRINT ( write_list )
-    (97) to_num -> . TO_NUMBER ( STR )
-    (98) to_num -> . TO_NUMBER ( var )
-    (99) to_str -> . TO_STRING ( expresion )
-    (107) return -> . RET ( expresion )
+    (106) input -> . INPUT ( var )
+    (107) write -> . PRINT ( write_list )
+    (103) to_num -> . TO_NUMBER ( STR )
+    (104) to_num -> . TO_NUMBER ( var )
+    (105) to_str -> . TO_STRING ( expresion )
+    (113) return -> . RET ( expresion )
 
     ID              shift and go to state 68
     INPUT           shift and go to state 69
@@ -828,14 +840,14 @@ state 50
     (1) start -> PROGRAM f_start ID f_prog ; clases vars funciones MAIN ( ) { . estatutos } END f_end ;
     (44) estatutos -> . estatutos estatuto
     (45) estatutos -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
 
     estatutos                      shift and go to state 80
     empty                          shift and go to state 81
@@ -848,11 +860,11 @@ state 51
     (40) params -> . empty
     (41) pparams -> . tipo ID f_param
     (42) pparams -> . pparams , tipo ID f_param
-    (108) empty -> .
+    (114) empty -> .
     (37) tipo -> . NUMBER
     (38) tipo -> . STRING
 
-    )               reduce using rule 108 (empty -> .)
+    )               reduce using rule 114 (empty -> .)
     NUMBER          shift and go to state 22
     STRING          shift and go to state 23
 
@@ -1106,36 +1118,36 @@ state 68
 
 state 69
 
-    (100) input -> INPUT . ( var )
+    (106) input -> INPUT . ( var )
 
     (               shift and go to state 96
 
 
 state 70
 
-    (101) write -> PRINT . ( write_list )
+    (107) write -> PRINT . ( write_list )
 
     (               shift and go to state 97
 
 
 state 71
 
-    (97) to_num -> TO_NUMBER . ( STR )
-    (98) to_num -> TO_NUMBER . ( var )
+    (103) to_num -> TO_NUMBER . ( STR )
+    (104) to_num -> TO_NUMBER . ( var )
 
     (               shift and go to state 98
 
 
 state 72
 
-    (99) to_str -> TO_STRING . ( expresion )
+    (105) to_str -> TO_STRING . ( expresion )
 
     (               shift and go to state 99
 
 
 state 73
 
-    (107) return -> RET . ( expresion )
+    (113) return -> RET . ( expresion )
 
     (               shift and go to state 100
 
@@ -1153,20 +1165,20 @@ state 75
     (30) dimension -> . [ expresion f_dim1 ] f_onedim
     (31) dimension -> . [ expresion f_dim1 ] [ expresion f_dim2 ] f_twodim
     (32) dimension -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
     [               shift and go to state 28
-    OPFACT          reduce using rule 108 (empty -> .)
-    OPTERM          reduce using rule 108 (empty -> .)
-    COMP            reduce using rule 108 (empty -> .)
-    ]               reduce using rule 108 (empty -> .)
-    )               reduce using rule 108 (empty -> .)
-    =               reduce using rule 108 (empty -> .)
-    TO              reduce using rule 108 (empty -> .)
-    ,               reduce using rule 108 (empty -> .)
-    ;               reduce using rule 108 (empty -> .)
-    {               reduce using rule 108 (empty -> .)
-    &               reduce using rule 108 (empty -> .)
+    OPFACT          reduce using rule 114 (empty -> .)
+    OPTERM          reduce using rule 114 (empty -> .)
+    COMP            reduce using rule 114 (empty -> .)
+    ]               reduce using rule 114 (empty -> .)
+    )               reduce using rule 114 (empty -> .)
+    =               reduce using rule 114 (empty -> .)
+    TO              reduce using rule 114 (empty -> .)
+    ,               reduce using rule 114 (empty -> .)
+    ;               reduce using rule 114 (empty -> .)
+    {               reduce using rule 114 (empty -> .)
+    &               reduce using rule 114 (empty -> .)
 
     dimension                      shift and go to state 102
     empty                          shift and go to state 29
@@ -1192,10 +1204,10 @@ state 78
     (8) clase -> TYPE ID f_startclass { cvars f_cvars . funciones } f_endclass
     (13) funciones -> . funciones funcion
     (14) funciones -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    }               reduce using rule 108 (empty -> .)
-    FUNC            reduce using rule 108 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    FUNC            reduce using rule 114 (empty -> .)
 
     funciones                      shift and go to state 105
     empty                          shift and go to state 15
@@ -1221,8 +1233,8 @@ state 80
     (49) estatuto -> . condicion
     (50) estatuto -> . CALL call_func ;
     (65) asignacion -> . var = f_oper expresion ;
-    (95) while -> . WHILE ( expresion ) DO { estatutos }
-    (96) for -> . FOR expresion TO expresion { estatutos }
+    (95) while -> . WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+    (99) for -> . FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
     (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
@@ -1430,7 +1442,7 @@ state 95
 
 state 96
 
-    (100) input -> INPUT ( . var )
+    (106) input -> INPUT ( . var )
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
 
@@ -1440,12 +1452,12 @@ state 96
 
 state 97
 
-    (101) write -> PRINT ( . write_list )
-    (102) write_list -> . write_list & write_listp
-    (103) write_list -> . write_listp
-    (104) write_listp -> . STR
-    (105) write_listp -> . var
-    (106) write_listp -> . CALL to_str
+    (107) write -> PRINT ( . write_list )
+    (108) write_list -> . write_list & write_listp
+    (109) write_list -> . write_listp
+    (110) write_listp -> . STR
+    (111) write_listp -> . var
+    (112) write_listp -> . CALL to_str
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
 
@@ -1459,8 +1471,8 @@ state 97
 
 state 98
 
-    (97) to_num -> TO_NUMBER ( . STR )
-    (98) to_num -> TO_NUMBER ( . var )
+    (103) to_num -> TO_NUMBER ( . STR )
+    (104) to_num -> TO_NUMBER ( . var )
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
 
@@ -1471,7 +1483,7 @@ state 98
 
 state 99
 
-    (99) to_str -> TO_STRING ( . expresion )
+    (105) to_str -> TO_STRING ( . expresion )
     (71) expresion -> . exp
     (72) expresion -> . expresion COMP f_oper exp f_expres
     (74) exp -> . term
@@ -1500,7 +1512,7 @@ state 99
 
 state 100
 
-    (107) return -> RET ( . expresion )
+    (113) return -> RET ( . expresion )
     (71) expresion -> . exp
     (72) expresion -> . expresion COMP f_oper exp f_expres
     (74) exp -> . term
@@ -1571,11 +1583,11 @@ state 104
     (7) clase -> TYPE ID f_startclass : ID f_clasepadre { . cvars f_cvars funciones } f_endclass
     (25) cvars -> . cvars DEF tipo dimension : lista_id ;
     (26) cvars -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    DEF             reduce using rule 108 (empty -> .)
-    }               reduce using rule 108 (empty -> .)
-    FUNC            reduce using rule 108 (empty -> .)
+    DEF             reduce using rule 114 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    FUNC            reduce using rule 114 (empty -> .)
 
     cvars                          shift and go to state 141
     empty                          shift and go to state 49
@@ -1598,10 +1610,10 @@ state 106
     (30) dimension -> . [ expresion f_dim1 ] f_onedim
     (31) dimension -> . [ expresion f_dim1 ] [ expresion f_dim2 ] f_twodim
     (32) dimension -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
     [               shift and go to state 28
-    :               reduce using rule 108 (empty -> .)
+    :               reduce using rule 114 (empty -> .)
 
     dimension                      shift and go to state 143
     empty                          shift and go to state 29
@@ -1684,12 +1696,12 @@ state 113
     (56) call_func -> . return
     (57) func -> . ID f_verify_func ( args )
     (58) func -> . ID f_varobj : ID f_verify_func_composite ( args )
-    (100) input -> . INPUT ( var )
-    (101) write -> . PRINT ( write_list )
-    (97) to_num -> . TO_NUMBER ( STR )
-    (98) to_num -> . TO_NUMBER ( var )
-    (99) to_str -> . TO_STRING ( expresion )
-    (107) return -> . RET ( expresion )
+    (106) input -> . INPUT ( var )
+    (107) write -> . PRINT ( write_list )
+    (103) to_num -> . TO_NUMBER ( STR )
+    (104) to_num -> . TO_NUMBER ( var )
+    (105) to_str -> . TO_STRING ( expresion )
+    (113) return -> . RET ( expresion )
 
     ID              shift and go to state 68
     INPUT           shift and go to state 69
@@ -1715,14 +1727,16 @@ state 114
 
 state 115
 
-    (95) while -> WHILE . ( expresion ) DO { estatutos }
+    (95) while -> WHILE . f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+    (96) f_while -> .
 
-    (               shift and go to state 147
+    (               reduce using rule 96 (f_while -> .)
 
+    f_while                        shift and go to state 147
 
 state 116
 
-    (96) for -> FOR . expresion TO expresion { estatutos }
+    (99) for -> FOR . expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
     (71) expresion -> . exp
     (72) expresion -> . expresion COMP f_oper exp f_expres
     (74) exp -> . term
@@ -1918,7 +1932,7 @@ state 128
     (62) args -> . empty
     (63) args_list -> . expresion
     (64) args_list -> . args_list , expresion
-    (108) empty -> .
+    (114) empty -> .
     (71) expresion -> . exp
     (72) expresion -> . expresion COMP f_oper exp f_expres
     (74) exp -> . term
@@ -1933,7 +1947,7 @@ state 128
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
 
-    )               reduce using rule 108 (empty -> .)
+    )               reduce using rule 114 (empty -> .)
     (               shift and go to state 41
     NUM             shift and go to state 43
     OPTERM          shift and go to state 39
@@ -1958,15 +1972,15 @@ state 129
 
 state 130
 
-    (100) input -> INPUT ( var . )
+    (106) input -> INPUT ( var . )
 
     )               shift and go to state 164
 
 
 state 131
 
-    (101) write -> PRINT ( write_list . )
-    (102) write_list -> write_list . & write_listp
+    (107) write -> PRINT ( write_list . )
+    (108) write_list -> write_list . & write_listp
 
     )               shift and go to state 165
     &               shift and go to state 166
@@ -1974,32 +1988,32 @@ state 131
 
 state 132
 
-    (103) write_list -> write_listp .
+    (109) write_list -> write_listp .
 
-    )               reduce using rule 103 (write_list -> write_listp .)
-    &               reduce using rule 103 (write_list -> write_listp .)
+    )               reduce using rule 109 (write_list -> write_listp .)
+    &               reduce using rule 109 (write_list -> write_listp .)
 
 
 state 133
 
-    (104) write_listp -> STR .
+    (110) write_listp -> STR .
 
-    )               reduce using rule 104 (write_listp -> STR .)
-    &               reduce using rule 104 (write_listp -> STR .)
+    )               reduce using rule 110 (write_listp -> STR .)
+    &               reduce using rule 110 (write_listp -> STR .)
 
 
 state 134
 
-    (105) write_listp -> var .
+    (111) write_listp -> var .
 
-    )               reduce using rule 105 (write_listp -> var .)
-    &               reduce using rule 105 (write_listp -> var .)
+    )               reduce using rule 111 (write_listp -> var .)
+    &               reduce using rule 111 (write_listp -> var .)
 
 
 state 135
 
-    (106) write_listp -> CALL . to_str
-    (99) to_str -> . TO_STRING ( expresion )
+    (112) write_listp -> CALL . to_str
+    (105) to_str -> . TO_STRING ( expresion )
 
     TO_STRING       shift and go to state 72
 
@@ -2007,21 +2021,21 @@ state 135
 
 state 136
 
-    (97) to_num -> TO_NUMBER ( STR . )
+    (103) to_num -> TO_NUMBER ( STR . )
 
     )               shift and go to state 168
 
 
 state 137
 
-    (98) to_num -> TO_NUMBER ( var . )
+    (104) to_num -> TO_NUMBER ( var . )
 
     )               shift and go to state 169
 
 
 state 138
 
-    (99) to_str -> TO_STRING ( expresion . )
+    (105) to_str -> TO_STRING ( expresion . )
     (72) expresion -> expresion . COMP f_oper exp f_expres
 
     )               shift and go to state 170
@@ -2030,7 +2044,7 @@ state 138
 
 state 139
 
-    (107) return -> RET ( expresion . )
+    (113) return -> RET ( expresion . )
     (72) expresion -> expresion . COMP f_oper exp f_expres
 
     )               shift and go to state 171
@@ -2119,41 +2133,21 @@ state 146
 
 state 147
 
-    (95) while -> WHILE ( . expresion ) DO { estatutos }
-    (71) expresion -> . exp
-    (72) expresion -> . expresion COMP f_oper exp f_expres
-    (74) exp -> . term
-    (75) exp -> . exp OPTERM f_oper term f_exp
-    (77) term -> . fact
-    (78) term -> . term OPFACT f_oper fact f_term
-    (81) fact -> . ( lparen expresion ) rparen
-    (82) fact -> . var
-    (83) fact -> . NUM f_fact
-    (84) fact -> . OPTERM NUM
-    (85) fact -> . CALL call_func
-    (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
-    (67) var -> . ID f_verify_type dimension
+    (95) while -> WHILE f_while . ( expresion f_exprwhile ) DO { estatutos } f_endwhile
 
-    (               shift and go to state 41
-    NUM             shift and go to state 43
-    OPTERM          shift and go to state 39
-    CALL            shift and go to state 44
-    ID              shift and go to state 45
+    (               shift and go to state 179
 
-    expresion                      shift and go to state 179
-    exp                            shift and go to state 37
-    term                           shift and go to state 38
-    fact                           shift and go to state 40
-    var                            shift and go to state 42
 
 state 148
 
-    (96) for -> FOR expresion . TO expresion { estatutos }
+    (99) for -> FOR expresion . f_for_start TO expresion f_for_to { estatutos } f_for_end
     (72) expresion -> expresion . COMP f_oper exp f_expres
+    (100) f_for_start -> .
 
-    TO              shift and go to state 180
     COMP            shift and go to state 55
+    TO              reduce using rule 100 (f_for_start -> .)
 
+    f_for_start                    shift and go to state 180
 
 state 149
 
@@ -2332,40 +2326,40 @@ state 163
 
 state 164
 
-    (100) input -> INPUT ( var ) .
+    (106) input -> INPUT ( var ) .
 
-    OPFACT          reduce using rule 100 (input -> INPUT ( var ) .)
-    OPTERM          reduce using rule 100 (input -> INPUT ( var ) .)
-    COMP            reduce using rule 100 (input -> INPUT ( var ) .)
-    ]               reduce using rule 100 (input -> INPUT ( var ) .)
-    )               reduce using rule 100 (input -> INPUT ( var ) .)
-    TO              reduce using rule 100 (input -> INPUT ( var ) .)
-    ,               reduce using rule 100 (input -> INPUT ( var ) .)
-    ;               reduce using rule 100 (input -> INPUT ( var ) .)
-    {               reduce using rule 100 (input -> INPUT ( var ) .)
+    OPFACT          reduce using rule 106 (input -> INPUT ( var ) .)
+    OPTERM          reduce using rule 106 (input -> INPUT ( var ) .)
+    COMP            reduce using rule 106 (input -> INPUT ( var ) .)
+    ]               reduce using rule 106 (input -> INPUT ( var ) .)
+    )               reduce using rule 106 (input -> INPUT ( var ) .)
+    TO              reduce using rule 106 (input -> INPUT ( var ) .)
+    ,               reduce using rule 106 (input -> INPUT ( var ) .)
+    ;               reduce using rule 106 (input -> INPUT ( var ) .)
+    {               reduce using rule 106 (input -> INPUT ( var ) .)
 
 
 state 165
 
-    (101) write -> PRINT ( write_list ) .
+    (107) write -> PRINT ( write_list ) .
 
-    OPFACT          reduce using rule 101 (write -> PRINT ( write_list ) .)
-    OPTERM          reduce using rule 101 (write -> PRINT ( write_list ) .)
-    COMP            reduce using rule 101 (write -> PRINT ( write_list ) .)
-    ]               reduce using rule 101 (write -> PRINT ( write_list ) .)
-    )               reduce using rule 101 (write -> PRINT ( write_list ) .)
-    TO              reduce using rule 101 (write -> PRINT ( write_list ) .)
-    ,               reduce using rule 101 (write -> PRINT ( write_list ) .)
-    ;               reduce using rule 101 (write -> PRINT ( write_list ) .)
-    {               reduce using rule 101 (write -> PRINT ( write_list ) .)
+    OPFACT          reduce using rule 107 (write -> PRINT ( write_list ) .)
+    OPTERM          reduce using rule 107 (write -> PRINT ( write_list ) .)
+    COMP            reduce using rule 107 (write -> PRINT ( write_list ) .)
+    ]               reduce using rule 107 (write -> PRINT ( write_list ) .)
+    )               reduce using rule 107 (write -> PRINT ( write_list ) .)
+    TO              reduce using rule 107 (write -> PRINT ( write_list ) .)
+    ,               reduce using rule 107 (write -> PRINT ( write_list ) .)
+    ;               reduce using rule 107 (write -> PRINT ( write_list ) .)
+    {               reduce using rule 107 (write -> PRINT ( write_list ) .)
 
 
 state 166
 
-    (102) write_list -> write_list & . write_listp
-    (104) write_listp -> . STR
-    (105) write_listp -> . var
-    (106) write_listp -> . CALL to_str
+    (108) write_list -> write_list & . write_listp
+    (110) write_listp -> . STR
+    (111) write_listp -> . var
+    (112) write_listp -> . CALL to_str
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
 
@@ -2378,71 +2372,71 @@ state 166
 
 state 167
 
-    (106) write_listp -> CALL to_str .
+    (112) write_listp -> CALL to_str .
 
-    )               reduce using rule 106 (write_listp -> CALL to_str .)
-    &               reduce using rule 106 (write_listp -> CALL to_str .)
+    )               reduce using rule 112 (write_listp -> CALL to_str .)
+    &               reduce using rule 112 (write_listp -> CALL to_str .)
 
 
 state 168
 
-    (97) to_num -> TO_NUMBER ( STR ) .
+    (103) to_num -> TO_NUMBER ( STR ) .
 
-    OPFACT          reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
-    OPTERM          reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
-    COMP            reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
-    ]               reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
-    )               reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
-    TO              reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
-    ,               reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
-    ;               reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
-    {               reduce using rule 97 (to_num -> TO_NUMBER ( STR ) .)
+    OPFACT          reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
+    OPTERM          reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
+    COMP            reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
+    ]               reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
+    )               reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
+    TO              reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
+    ,               reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
+    ;               reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
+    {               reduce using rule 103 (to_num -> TO_NUMBER ( STR ) .)
 
 
 state 169
 
-    (98) to_num -> TO_NUMBER ( var ) .
+    (104) to_num -> TO_NUMBER ( var ) .
 
-    OPFACT          reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
-    OPTERM          reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
-    COMP            reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
-    ]               reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
-    )               reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
-    TO              reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
-    ,               reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
-    ;               reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
-    {               reduce using rule 98 (to_num -> TO_NUMBER ( var ) .)
+    OPFACT          reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
+    OPTERM          reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
+    COMP            reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
+    ]               reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
+    )               reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
+    TO              reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
+    ,               reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
+    ;               reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
+    {               reduce using rule 104 (to_num -> TO_NUMBER ( var ) .)
 
 
 state 170
 
-    (99) to_str -> TO_STRING ( expresion ) .
+    (105) to_str -> TO_STRING ( expresion ) .
 
-    OPFACT          reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    OPTERM          reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    COMP            reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    ]               reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    )               reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    TO              reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    ,               reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    ;               reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    {               reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
-    &               reduce using rule 99 (to_str -> TO_STRING ( expresion ) .)
+    OPFACT          reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    OPTERM          reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    COMP            reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    ]               reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    )               reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    TO              reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    ,               reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    ;               reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    {               reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
+    &               reduce using rule 105 (to_str -> TO_STRING ( expresion ) .)
 
 
 state 171
 
-    (107) return -> RET ( expresion ) .
+    (113) return -> RET ( expresion ) .
 
-    OPFACT          reduce using rule 107 (return -> RET ( expresion ) .)
-    OPTERM          reduce using rule 107 (return -> RET ( expresion ) .)
-    COMP            reduce using rule 107 (return -> RET ( expresion ) .)
-    ]               reduce using rule 107 (return -> RET ( expresion ) .)
-    )               reduce using rule 107 (return -> RET ( expresion ) .)
-    TO              reduce using rule 107 (return -> RET ( expresion ) .)
-    ,               reduce using rule 107 (return -> RET ( expresion ) .)
-    ;               reduce using rule 107 (return -> RET ( expresion ) .)
-    {               reduce using rule 107 (return -> RET ( expresion ) .)
+    OPFACT          reduce using rule 113 (return -> RET ( expresion ) .)
+    OPTERM          reduce using rule 113 (return -> RET ( expresion ) .)
+    COMP            reduce using rule 113 (return -> RET ( expresion ) .)
+    ]               reduce using rule 113 (return -> RET ( expresion ) .)
+    )               reduce using rule 113 (return -> RET ( expresion ) .)
+    TO              reduce using rule 113 (return -> RET ( expresion ) .)
+    ,               reduce using rule 113 (return -> RET ( expresion ) .)
+    ;               reduce using rule 113 (return -> RET ( expresion ) .)
+    {               reduce using rule 113 (return -> RET ( expresion ) .)
 
 
 state 172
@@ -2451,20 +2445,20 @@ state 172
     (30) dimension -> . [ expresion f_dim1 ] f_onedim
     (31) dimension -> . [ expresion f_dim1 ] [ expresion f_dim2 ] f_twodim
     (32) dimension -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
     [               shift and go to state 28
-    OPFACT          reduce using rule 108 (empty -> .)
-    OPTERM          reduce using rule 108 (empty -> .)
-    COMP            reduce using rule 108 (empty -> .)
-    ]               reduce using rule 108 (empty -> .)
-    )               reduce using rule 108 (empty -> .)
-    =               reduce using rule 108 (empty -> .)
-    TO              reduce using rule 108 (empty -> .)
-    ,               reduce using rule 108 (empty -> .)
-    ;               reduce using rule 108 (empty -> .)
-    {               reduce using rule 108 (empty -> .)
-    &               reduce using rule 108 (empty -> .)
+    OPFACT          reduce using rule 114 (empty -> .)
+    OPTERM          reduce using rule 114 (empty -> .)
+    COMP            reduce using rule 114 (empty -> .)
+    ]               reduce using rule 114 (empty -> .)
+    )               reduce using rule 114 (empty -> .)
+    =               reduce using rule 114 (empty -> .)
+    TO              reduce using rule 114 (empty -> .)
+    ,               reduce using rule 114 (empty -> .)
+    ;               reduce using rule 114 (empty -> .)
+    {               reduce using rule 114 (empty -> .)
+    &               reduce using rule 114 (empty -> .)
 
     dimension                      shift and go to state 190
     empty                          shift and go to state 29
@@ -2474,10 +2468,10 @@ state 173
     (7) clase -> TYPE ID f_startclass : ID f_clasepadre { cvars f_cvars . funciones } f_endclass
     (13) funciones -> . funciones funcion
     (14) funciones -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    }               reduce using rule 108 (empty -> .)
-    FUNC            reduce using rule 108 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    FUNC            reduce using rule 114 (empty -> .)
 
     funciones                      shift and go to state 191
     empty                          shift and go to state 15
@@ -2552,16 +2546,7 @@ state 178
 
 state 179
 
-    (95) while -> WHILE ( expresion . ) DO { estatutos }
-    (72) expresion -> expresion . COMP f_oper exp f_expres
-
-    )               shift and go to state 195
-    COMP            shift and go to state 55
-
-
-state 180
-
-    (96) for -> FOR expresion TO . expresion { estatutos }
+    (95) while -> WHILE f_while ( . expresion f_exprwhile ) DO { estatutos } f_endwhile
     (71) expresion -> . exp
     (72) expresion -> . expresion COMP f_oper exp f_expres
     (74) exp -> . term
@@ -2582,11 +2567,18 @@ state 180
     CALL            shift and go to state 44
     ID              shift and go to state 45
 
-    expresion                      shift and go to state 196
+    expresion                      shift and go to state 195
     exp                            shift and go to state 37
     term                           shift and go to state 38
     fact                           shift and go to state 40
     var                            shift and go to state 42
+
+state 180
+
+    (99) for -> FOR expresion f_for_start . TO expresion f_for_to { estatutos } f_for_end
+
+    TO              shift and go to state 196
+
 
 state 181
 
@@ -2685,10 +2677,10 @@ state 188
 
 state 189
 
-    (102) write_list -> write_list & write_listp .
+    (108) write_list -> write_list & write_listp .
 
-    )               reduce using rule 102 (write_list -> write_list & write_listp .)
-    &               reduce using rule 102 (write_list -> write_list & write_listp .)
+    )               reduce using rule 108 (write_list -> write_list & write_listp .)
+    &               reduce using rule 108 (write_list -> write_list & write_listp .)
 
 
 state 190
@@ -2747,19 +2739,43 @@ state 194
 
 state 195
 
-    (95) while -> WHILE ( expresion ) . DO { estatutos }
+    (95) while -> WHILE f_while ( expresion . f_exprwhile ) DO { estatutos } f_endwhile
+    (72) expresion -> expresion . COMP f_oper exp f_expres
+    (97) f_exprwhile -> .
 
-    DO              shift and go to state 207
+    COMP            shift and go to state 55
+    )               reduce using rule 97 (f_exprwhile -> .)
 
+    f_exprwhile                    shift and go to state 207
 
 state 196
 
-    (96) for -> FOR expresion TO expresion . { estatutos }
-    (72) expresion -> expresion . COMP f_oper exp f_expres
+    (99) for -> FOR expresion f_for_start TO . expresion f_for_to { estatutos } f_for_end
+    (71) expresion -> . exp
+    (72) expresion -> . expresion COMP f_oper exp f_expres
+    (74) exp -> . term
+    (75) exp -> . exp OPTERM f_oper term f_exp
+    (77) term -> . fact
+    (78) term -> . term OPFACT f_oper fact f_term
+    (81) fact -> . ( lparen expresion ) rparen
+    (82) fact -> . var
+    (83) fact -> . NUM f_fact
+    (84) fact -> . OPTERM NUM
+    (85) fact -> . CALL call_func
+    (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
+    (67) var -> . ID f_verify_type dimension
 
-    {               shift and go to state 208
-    COMP            shift and go to state 55
+    (               shift and go to state 41
+    NUM             shift and go to state 43
+    OPTERM          shift and go to state 39
+    CALL            shift and go to state 44
+    ID              shift and go to state 45
 
+    expresion                      shift and go to state 208
+    exp                            shift and go to state 37
+    term                           shift and go to state 38
+    fact                           shift and go to state 40
+    var                            shift and go to state 42
 
 state 197
 
@@ -2831,7 +2847,7 @@ state 203
     (62) args -> . empty
     (63) args_list -> . expresion
     (64) args_list -> . args_list , expresion
-    (108) empty -> .
+    (114) empty -> .
     (71) expresion -> . exp
     (72) expresion -> . expresion COMP f_oper exp f_expres
     (74) exp -> . term
@@ -2846,7 +2862,7 @@ state 203
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
 
-    )               reduce using rule 108 (empty -> .)
+    )               reduce using rule 114 (empty -> .)
     (               shift and go to state 41
     NUM             shift and go to state 43
     OPTERM          shift and go to state 39
@@ -2897,27 +2913,21 @@ state 206
 
 state 207
 
-    (95) while -> WHILE ( expresion ) DO . { estatutos }
+    (95) while -> WHILE f_while ( expresion f_exprwhile . ) DO { estatutos } f_endwhile
 
-    {               shift and go to state 215
+    )               shift and go to state 215
 
 
 state 208
 
-    (96) for -> FOR expresion TO expresion { . estatutos }
-    (44) estatutos -> . estatutos estatuto
-    (45) estatutos -> . empty
-    (108) empty -> .
+    (99) for -> FOR expresion f_for_start TO expresion . f_for_to { estatutos } f_for_end
+    (72) expresion -> expresion . COMP f_oper exp f_expres
+    (101) f_for_to -> .
 
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
+    COMP            shift and go to state 55
+    {               reduce using rule 101 (f_for_to -> .)
 
-    estatutos                      shift and go to state 216
-    empty                          shift and go to state 81
+    f_for_to                       shift and go to state 216
 
 state 209
 
@@ -2932,15 +2942,15 @@ state 210
     (21) vars -> . vars DEF tipo dimension : lista_id ;
     (22) vars -> . vars DEF ID f_varsobj : lista_id ;
     (23) vars -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    DEF             reduce using rule 108 (empty -> .)
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
+    DEF             reduce using rule 114 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
 
     vars                           shift and go to state 218
     empty                          shift and go to state 11
@@ -2989,50 +2999,17 @@ state 214
 
 state 215
 
-    (95) while -> WHILE ( expresion ) DO { . estatutos }
-    (44) estatutos -> . estatutos estatuto
-    (45) estatutos -> . empty
-    (108) empty -> .
+    (95) while -> WHILE f_while ( expresion f_exprwhile ) . DO { estatutos } f_endwhile
 
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
+    DO              shift and go to state 221
 
-    estatutos                      shift and go to state 221
-    empty                          shift and go to state 81
 
 state 216
 
-    (96) for -> FOR expresion TO expresion { estatutos . }
-    (44) estatutos -> estatutos . estatuto
-    (46) estatuto -> . asignacion
-    (47) estatuto -> . while
-    (48) estatuto -> . for
-    (49) estatuto -> . condicion
-    (50) estatuto -> . CALL call_func ;
-    (65) asignacion -> . var = f_oper expresion ;
-    (95) while -> . WHILE ( expresion ) DO { estatutos }
-    (96) for -> . FOR expresion TO expresion { estatutos }
-    (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
-    (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
-    (67) var -> . ID f_verify_type dimension
+    (99) for -> FOR expresion f_for_start TO expresion f_for_to . { estatutos } f_for_end
 
-    }               shift and go to state 222
-    CALL            shift and go to state 113
-    WHILE           shift and go to state 115
-    FOR             shift and go to state 116
-    IF              shift and go to state 117
-    ID              shift and go to state 45
+    {               shift and go to state 222
 
-    estatuto                       shift and go to state 108
-    asignacion                     shift and go to state 109
-    while                          shift and go to state 110
-    for                            shift and go to state 111
-    condicion                      shift and go to state 112
-    var                            shift and go to state 114
 
 state 217
 
@@ -3048,15 +3025,15 @@ state 218
     (22) vars -> vars . DEF ID f_varsobj : lista_id ;
     (44) estatutos -> . estatutos estatuto
     (45) estatutos -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
     DEF             shift and go to state 14
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
 
     estatutos                      shift and go to state 224
     empty                          shift and go to state 81
@@ -3067,15 +3044,15 @@ state 219
     (21) vars -> . vars DEF tipo dimension : lista_id ;
     (22) vars -> . vars DEF ID f_varsobj : lista_id ;
     (23) vars -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    DEF             reduce using rule 108 (empty -> .)
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
+    DEF             reduce using rule 114 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
 
     vars                           shift and go to state 225
     empty                          shift and go to state 11
@@ -3097,61 +3074,43 @@ state 220
 
 state 221
 
-    (95) while -> WHILE ( expresion ) DO { estatutos . }
-    (44) estatutos -> estatutos . estatuto
-    (46) estatuto -> . asignacion
-    (47) estatuto -> . while
-    (48) estatuto -> . for
-    (49) estatuto -> . condicion
-    (50) estatuto -> . CALL call_func ;
-    (65) asignacion -> . var = f_oper expresion ;
-    (95) while -> . WHILE ( expresion ) DO { estatutos }
-    (96) for -> . FOR expresion TO expresion { estatutos }
-    (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
-    (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
-    (67) var -> . ID f_verify_type dimension
+    (95) while -> WHILE f_while ( expresion f_exprwhile ) DO . { estatutos } f_endwhile
 
-    }               shift and go to state 226
-    CALL            shift and go to state 113
-    WHILE           shift and go to state 115
-    FOR             shift and go to state 116
-    IF              shift and go to state 117
-    ID              shift and go to state 45
+    {               shift and go to state 226
 
-    estatuto                       shift and go to state 108
-    asignacion                     shift and go to state 109
-    while                          shift and go to state 110
-    for                            shift and go to state 111
-    condicion                      shift and go to state 112
-    var                            shift and go to state 114
 
 state 222
 
-    (96) for -> FOR expresion TO expresion { estatutos } .
+    (99) for -> FOR expresion f_for_start TO expresion f_for_to { . estatutos } f_for_end
+    (44) estatutos -> . estatutos estatuto
+    (45) estatutos -> . empty
+    (114) empty -> .
 
-    }               reduce using rule 96 (for -> FOR expresion TO expresion { estatutos } .)
-    CALL            reduce using rule 96 (for -> FOR expresion TO expresion { estatutos } .)
-    WHILE           reduce using rule 96 (for -> FOR expresion TO expresion { estatutos } .)
-    FOR             reduce using rule 96 (for -> FOR expresion TO expresion { estatutos } .)
-    IF              reduce using rule 96 (for -> FOR expresion TO expresion { estatutos } .)
-    ID              reduce using rule 96 (for -> FOR expresion TO expresion { estatutos } .)
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
 
+    estatutos                      shift and go to state 227
+    empty                          shift and go to state 81
 
 state 223
 
     (89) condicion -> IF ( expresion ) f_if THEN { . estatutos } condicionp f_endif
     (44) estatutos -> . estatutos estatuto
     (45) estatutos -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
 
-    estatutos                      shift and go to state 227
+    estatutos                      shift and go to state 228
     empty                          shift and go to state 81
 
 state 224
@@ -3164,13 +3123,13 @@ state 224
     (49) estatuto -> . condicion
     (50) estatuto -> . CALL call_func ;
     (65) asignacion -> . var = f_oper expresion ;
-    (95) while -> . WHILE ( expresion ) DO { estatutos }
-    (96) for -> . FOR expresion TO expresion { estatutos }
+    (95) while -> . WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+    (99) for -> . FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
     (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
 
-    }               shift and go to state 228
+    }               shift and go to state 229
     CALL            shift and go to state 113
     WHILE           shift and go to state 115
     FOR             shift and go to state 116
@@ -3191,34 +3150,39 @@ state 225
     (22) vars -> vars . DEF ID f_varsobj : lista_id ;
     (44) estatutos -> . estatutos estatuto
     (45) estatutos -> . empty
-    (108) empty -> .
+    (114) empty -> .
 
     DEF             shift and go to state 14
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
 
-    estatutos                      shift and go to state 229
+    estatutos                      shift and go to state 230
     empty                          shift and go to state 81
 
 state 226
 
-    (95) while -> WHILE ( expresion ) DO { estatutos } .
+    (95) while -> WHILE f_while ( expresion f_exprwhile ) DO { . estatutos } f_endwhile
+    (44) estatutos -> . estatutos estatuto
+    (45) estatutos -> . empty
+    (114) empty -> .
 
-    }               reduce using rule 95 (while -> WHILE ( expresion ) DO { estatutos } .)
-    CALL            reduce using rule 95 (while -> WHILE ( expresion ) DO { estatutos } .)
-    WHILE           reduce using rule 95 (while -> WHILE ( expresion ) DO { estatutos } .)
-    FOR             reduce using rule 95 (while -> WHILE ( expresion ) DO { estatutos } .)
-    IF              reduce using rule 95 (while -> WHILE ( expresion ) DO { estatutos } .)
-    ID              reduce using rule 95 (while -> WHILE ( expresion ) DO { estatutos } .)
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
 
+    estatutos                      shift and go to state 231
+    empty                          shift and go to state 81
 
 state 227
 
-    (89) condicion -> IF ( expresion ) f_if THEN { estatutos . } condicionp f_endif
+    (99) for -> FOR expresion f_for_start TO expresion f_for_to { estatutos . } f_for_end
     (44) estatutos -> estatutos . estatuto
     (46) estatuto -> . asignacion
     (47) estatuto -> . while
@@ -3226,49 +3190,8 @@ state 227
     (49) estatuto -> . condicion
     (50) estatuto -> . CALL call_func ;
     (65) asignacion -> . var = f_oper expresion ;
-    (95) while -> . WHILE ( expresion ) DO { estatutos }
-    (96) for -> . FOR expresion TO expresion { estatutos }
-    (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
-    (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
-    (67) var -> . ID f_verify_type dimension
-
-    }               shift and go to state 230
-    CALL            shift and go to state 113
-    WHILE           shift and go to state 115
-    FOR             shift and go to state 116
-    IF              shift and go to state 117
-    ID              shift and go to state 45
-
-    estatuto                       shift and go to state 108
-    asignacion                     shift and go to state 109
-    while                          shift and go to state 110
-    for                            shift and go to state 111
-    condicion                      shift and go to state 112
-    var                            shift and go to state 114
-
-state 228
-
-    (15) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } . f_endfunc
-    (20) f_endfunc -> .
-
-    MAIN            reduce using rule 20 (f_endfunc -> .)
-    FUNC            reduce using rule 20 (f_endfunc -> .)
-    }               reduce using rule 20 (f_endfunc -> .)
-
-    f_endfunc                      shift and go to state 231
-
-state 229
-
-    (16) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos . } f_endfunc
-    (44) estatutos -> estatutos . estatuto
-    (46) estatuto -> . asignacion
-    (47) estatuto -> . while
-    (48) estatuto -> . for
-    (49) estatuto -> . condicion
-    (50) estatuto -> . CALL call_func ;
-    (65) asignacion -> . var = f_oper expresion ;
-    (95) while -> . WHILE ( expresion ) DO { estatutos }
-    (96) for -> . FOR expresion TO expresion { estatutos }
+    (95) while -> . WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+    (99) for -> . FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
     (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
@@ -3287,127 +3210,9 @@ state 229
     condicion                      shift and go to state 112
     var                            shift and go to state 114
 
-state 230
+state 228
 
-    (89) condicion -> IF ( expresion ) f_if THEN { estatutos } . condicionp f_endif
-    (90) condicionp -> . ELSE f_else { estatutos }
-    (91) condicionp -> . empty
-    (108) empty -> .
-
-    ELSE            shift and go to state 234
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
-
-    condicionp                     shift and go to state 233
-    empty                          shift and go to state 235
-
-state 231
-
-    (15) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .
-
-    MAIN            reduce using rule 15 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
-    FUNC            reduce using rule 15 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
-    }               reduce using rule 15 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
-
-
-state 232
-
-    (16) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } . f_endfunc
-    (20) f_endfunc -> .
-
-    MAIN            reduce using rule 20 (f_endfunc -> .)
-    FUNC            reduce using rule 20 (f_endfunc -> .)
-    }               reduce using rule 20 (f_endfunc -> .)
-
-    f_endfunc                      shift and go to state 236
-
-state 233
-
-    (89) condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp . f_endif
-    (93) f_endif -> .
-
-    }               reduce using rule 93 (f_endif -> .)
-    CALL            reduce using rule 93 (f_endif -> .)
-    WHILE           reduce using rule 93 (f_endif -> .)
-    FOR             reduce using rule 93 (f_endif -> .)
-    IF              reduce using rule 93 (f_endif -> .)
-    ID              reduce using rule 93 (f_endif -> .)
-
-    f_endif                        shift and go to state 237
-
-state 234
-
-    (90) condicionp -> ELSE . f_else { estatutos }
-    (94) f_else -> .
-
-    {               reduce using rule 94 (f_else -> .)
-
-    f_else                         shift and go to state 238
-
-state 235
-
-    (91) condicionp -> empty .
-
-    }               reduce using rule 91 (condicionp -> empty .)
-    CALL            reduce using rule 91 (condicionp -> empty .)
-    WHILE           reduce using rule 91 (condicionp -> empty .)
-    FOR             reduce using rule 91 (condicionp -> empty .)
-    IF              reduce using rule 91 (condicionp -> empty .)
-    ID              reduce using rule 91 (condicionp -> empty .)
-
-
-state 236
-
-    (16) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .
-
-    MAIN            reduce using rule 16 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
-    FUNC            reduce using rule 16 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
-    }               reduce using rule 16 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
-
-
-state 237
-
-    (89) condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .
-
-    }               reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
-    CALL            reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
-    WHILE           reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
-    FOR             reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
-    IF              reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
-    ID              reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
-
-
-state 238
-
-    (90) condicionp -> ELSE f_else . { estatutos }
-
-    {               shift and go to state 239
-
-
-state 239
-
-    (90) condicionp -> ELSE f_else { . estatutos }
-    (44) estatutos -> . estatutos estatuto
-    (45) estatutos -> . empty
-    (108) empty -> .
-
-    }               reduce using rule 108 (empty -> .)
-    CALL            reduce using rule 108 (empty -> .)
-    WHILE           reduce using rule 108 (empty -> .)
-    FOR             reduce using rule 108 (empty -> .)
-    IF              reduce using rule 108 (empty -> .)
-    ID              reduce using rule 108 (empty -> .)
-
-    estatutos                      shift and go to state 240
-    empty                          shift and go to state 81
-
-state 240
-
-    (90) condicionp -> ELSE f_else { estatutos . }
+    (89) condicion -> IF ( expresion ) f_if THEN { estatutos . } condicionp f_endif
     (44) estatutos -> estatutos . estatuto
     (46) estatuto -> . asignacion
     (47) estatuto -> . while
@@ -3415,13 +3220,13 @@ state 240
     (49) estatuto -> . condicion
     (50) estatuto -> . CALL call_func ;
     (65) asignacion -> . var = f_oper expresion ;
-    (95) while -> . WHILE ( expresion ) DO { estatutos }
-    (96) for -> . FOR expresion TO expresion { estatutos }
+    (95) while -> . WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+    (99) for -> . FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
     (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
     (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
     (67) var -> . ID f_verify_type dimension
 
-    }               shift and go to state 241
+    }               shift and go to state 233
     CALL            shift and go to state 113
     WHILE           shift and go to state 115
     FOR             shift and go to state 116
@@ -3435,7 +3240,278 @@ state 240
     condicion                      shift and go to state 112
     var                            shift and go to state 114
 
+state 229
+
+    (15) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } . f_endfunc
+    (20) f_endfunc -> .
+
+    MAIN            reduce using rule 20 (f_endfunc -> .)
+    FUNC            reduce using rule 20 (f_endfunc -> .)
+    }               reduce using rule 20 (f_endfunc -> .)
+
+    f_endfunc                      shift and go to state 234
+
+state 230
+
+    (16) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos . } f_endfunc
+    (44) estatutos -> estatutos . estatuto
+    (46) estatuto -> . asignacion
+    (47) estatuto -> . while
+    (48) estatuto -> . for
+    (49) estatuto -> . condicion
+    (50) estatuto -> . CALL call_func ;
+    (65) asignacion -> . var = f_oper expresion ;
+    (95) while -> . WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+    (99) for -> . FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
+    (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
+    (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
+    (67) var -> . ID f_verify_type dimension
+
+    }               shift and go to state 235
+    CALL            shift and go to state 113
+    WHILE           shift and go to state 115
+    FOR             shift and go to state 116
+    IF              shift and go to state 117
+    ID              shift and go to state 45
+
+    estatuto                       shift and go to state 108
+    asignacion                     shift and go to state 109
+    while                          shift and go to state 110
+    for                            shift and go to state 111
+    condicion                      shift and go to state 112
+    var                            shift and go to state 114
+
+state 231
+
+    (95) while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos . } f_endwhile
+    (44) estatutos -> estatutos . estatuto
+    (46) estatuto -> . asignacion
+    (47) estatuto -> . while
+    (48) estatuto -> . for
+    (49) estatuto -> . condicion
+    (50) estatuto -> . CALL call_func ;
+    (65) asignacion -> . var = f_oper expresion ;
+    (95) while -> . WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+    (99) for -> . FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
+    (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
+    (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
+    (67) var -> . ID f_verify_type dimension
+
+    }               shift and go to state 236
+    CALL            shift and go to state 113
+    WHILE           shift and go to state 115
+    FOR             shift and go to state 116
+    IF              shift and go to state 117
+    ID              shift and go to state 45
+
+    estatuto                       shift and go to state 108
+    asignacion                     shift and go to state 109
+    while                          shift and go to state 110
+    for                            shift and go to state 111
+    condicion                      shift and go to state 112
+    var                            shift and go to state 114
+
+state 232
+
+    (99) for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } . f_for_end
+    (102) f_for_end -> .
+
+    }               reduce using rule 102 (f_for_end -> .)
+    CALL            reduce using rule 102 (f_for_end -> .)
+    WHILE           reduce using rule 102 (f_for_end -> .)
+    FOR             reduce using rule 102 (f_for_end -> .)
+    IF              reduce using rule 102 (f_for_end -> .)
+    ID              reduce using rule 102 (f_for_end -> .)
+
+    f_for_end                      shift and go to state 237
+
+state 233
+
+    (89) condicion -> IF ( expresion ) f_if THEN { estatutos } . condicionp f_endif
+    (90) condicionp -> . ELSE f_else { estatutos }
+    (91) condicionp -> . empty
+    (114) empty -> .
+
+    ELSE            shift and go to state 239
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
+
+    condicionp                     shift and go to state 238
+    empty                          shift and go to state 240
+
+state 234
+
+    (15) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .
+
+    MAIN            reduce using rule 15 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
+    FUNC            reduce using rule 15 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
+    }               reduce using rule 15 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
+
+
+state 235
+
+    (16) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } . f_endfunc
+    (20) f_endfunc -> .
+
+    MAIN            reduce using rule 20 (f_endfunc -> .)
+    FUNC            reduce using rule 20 (f_endfunc -> .)
+    }               reduce using rule 20 (f_endfunc -> .)
+
+    f_endfunc                      shift and go to state 241
+
+state 236
+
+    (95) while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } . f_endwhile
+    (98) f_endwhile -> .
+
+    }               reduce using rule 98 (f_endwhile -> .)
+    CALL            reduce using rule 98 (f_endwhile -> .)
+    WHILE           reduce using rule 98 (f_endwhile -> .)
+    FOR             reduce using rule 98 (f_endwhile -> .)
+    IF              reduce using rule 98 (f_endwhile -> .)
+    ID              reduce using rule 98 (f_endwhile -> .)
+
+    f_endwhile                     shift and go to state 242
+
+state 237
+
+    (99) for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end .
+
+    }               reduce using rule 99 (for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end .)
+    CALL            reduce using rule 99 (for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end .)
+    WHILE           reduce using rule 99 (for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end .)
+    FOR             reduce using rule 99 (for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end .)
+    IF              reduce using rule 99 (for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end .)
+    ID              reduce using rule 99 (for -> FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end .)
+
+
+state 238
+
+    (89) condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp . f_endif
+    (93) f_endif -> .
+
+    }               reduce using rule 93 (f_endif -> .)
+    CALL            reduce using rule 93 (f_endif -> .)
+    WHILE           reduce using rule 93 (f_endif -> .)
+    FOR             reduce using rule 93 (f_endif -> .)
+    IF              reduce using rule 93 (f_endif -> .)
+    ID              reduce using rule 93 (f_endif -> .)
+
+    f_endif                        shift and go to state 243
+
+state 239
+
+    (90) condicionp -> ELSE . f_else { estatutos }
+    (94) f_else -> .
+
+    {               reduce using rule 94 (f_else -> .)
+
+    f_else                         shift and go to state 244
+
+state 240
+
+    (91) condicionp -> empty .
+
+    }               reduce using rule 91 (condicionp -> empty .)
+    CALL            reduce using rule 91 (condicionp -> empty .)
+    WHILE           reduce using rule 91 (condicionp -> empty .)
+    FOR             reduce using rule 91 (condicionp -> empty .)
+    IF              reduce using rule 91 (condicionp -> empty .)
+    ID              reduce using rule 91 (condicionp -> empty .)
+
+
 state 241
+
+    (16) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .
+
+    MAIN            reduce using rule 16 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
+    FUNC            reduce using rule 16 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
+    }               reduce using rule 16 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
+
+
+state 242
+
+    (95) while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile .
+
+    }               reduce using rule 95 (while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile .)
+    CALL            reduce using rule 95 (while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile .)
+    WHILE           reduce using rule 95 (while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile .)
+    FOR             reduce using rule 95 (while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile .)
+    IF              reduce using rule 95 (while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile .)
+    ID              reduce using rule 95 (while -> WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile .)
+
+
+state 243
+
+    (89) condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .
+
+    }               reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
+    CALL            reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
+    WHILE           reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
+    FOR             reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
+    IF              reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
+    ID              reduce using rule 89 (condicion -> IF ( expresion ) f_if THEN { estatutos } condicionp f_endif .)
+
+
+state 244
+
+    (90) condicionp -> ELSE f_else . { estatutos }
+
+    {               shift and go to state 245
+
+
+state 245
+
+    (90) condicionp -> ELSE f_else { . estatutos }
+    (44) estatutos -> . estatutos estatuto
+    (45) estatutos -> . empty
+    (114) empty -> .
+
+    }               reduce using rule 114 (empty -> .)
+    CALL            reduce using rule 114 (empty -> .)
+    WHILE           reduce using rule 114 (empty -> .)
+    FOR             reduce using rule 114 (empty -> .)
+    IF              reduce using rule 114 (empty -> .)
+    ID              reduce using rule 114 (empty -> .)
+
+    estatutos                      shift and go to state 246
+    empty                          shift and go to state 81
+
+state 246
+
+    (90) condicionp -> ELSE f_else { estatutos . }
+    (44) estatutos -> estatutos . estatuto
+    (46) estatuto -> . asignacion
+    (47) estatuto -> . while
+    (48) estatuto -> . for
+    (49) estatuto -> . condicion
+    (50) estatuto -> . CALL call_func ;
+    (65) asignacion -> . var = f_oper expresion ;
+    (95) while -> . WHILE f_while ( expresion f_exprwhile ) DO { estatutos } f_endwhile
+    (99) for -> . FOR expresion f_for_start TO expresion f_for_to { estatutos } f_for_end
+    (89) condicion -> . IF ( expresion ) f_if THEN { estatutos } condicionp f_endif
+    (66) var -> . ID f_varobj : ID f_verify_type_composite dimension
+    (67) var -> . ID f_verify_type dimension
+
+    }               shift and go to state 247
+    CALL            shift and go to state 113
+    WHILE           shift and go to state 115
+    FOR             shift and go to state 116
+    IF              shift and go to state 117
+    ID              shift and go to state 45
+
+    estatuto                       shift and go to state 108
+    asignacion                     shift and go to state 109
+    while                          shift and go to state 110
+    for                            shift and go to state 111
+    condicion                      shift and go to state 112
+    var                            shift and go to state 114
+
+state 247
 
     (90) condicionp -> ELSE f_else { estatutos } .
 
