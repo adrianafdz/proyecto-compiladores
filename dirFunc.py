@@ -46,6 +46,14 @@ class dirFunc:
             return False
         return True
 
+    def add_resources(self, nombre, cantidad):
+        if nombre in self.dir_func:
+            self.dir_func[nombre]['recursos'] = cantidad
+        else:
+            print("Error: la funcion", str(nombre), "no existe")
+            return False
+        return True
+
     def add_var(self, func, nombre, tipo, dimension, memoria):
         if nombre not in self.dir_func:
             self.dir_func[func]['vars'].add_var(nombre, tipo, dimension, memoria)

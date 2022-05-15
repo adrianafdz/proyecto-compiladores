@@ -132,11 +132,15 @@ def p_f_main(p):
 
 def p_f_end(p):
     "f_end : "
-    global dirLocal
+    global dirLocal, dirTemp
+    # CALCULAR RECURSOS
+    recursos = dirGlobal + (dirTemp - 7000)
+    curr_dir[-1].add_resources(curr_func[-1], recursos)
+    curr_func.pop()
+
     # print(curr_dir[-1])
     curr_dir[-1].delete_dir()
     curr_func.pop()
-    dirLocal = 7000 # reinicia
 
 def p_clases(p):
     '''clases : clases clase
@@ -192,9 +196,17 @@ def p_f_tipofunc(p):
 
 def p_f_endfunc(p):
     "f_endfunc :"
+    global dirLocal, dirTemp
     curr_dir[-1].delete_var_table(curr_func[-1])
+    # CALCULAR RECURSOS
+    recursos = (dirLocal - 4000) + (dirTemp - 7000)
+    curr_dir[-1].add_resources(curr_func[-1], recursos)
     curr_func.pop()
+
     cuadruplos.add("GOBACK", None, None, None) # cuadruplo para regresar al programa principal
+
+    dirLocal = 4000 # reinicia direcciones locales y temporales
+    dirTemp = 7000
 
 def p_vars(p):
     '''vars : vars DEF tipo dimension ':' lista_id ';'
@@ -223,7 +235,7 @@ def p_lista_id(p):
 def p_f_vars(p):
     "f_vars :"
     global dimension, dirGlobal, dirLocal, found_error
-    if len(curr_dir) == 0: # esta en variables globales
+    if len(curr_func) == 1: # esta en variables globales
         if dirGlobal == 4000:
             print("MEMORIA GLOBAL LLENA")
             found_error = True

@@ -4,13 +4,18 @@ def number : x, y, z;
 
 func f1() : number {
     def number : d;
-    call ret(d + 9);
+    d = 3 * 8;
+}
+
+func f2() : number {
+    def number : s;
+    s = 4 / 5;
 }
 
 main() {
     x = 1;
     y = 4;
-    z = call f1();
+    z = 5;
 
     for x + 1 to y * 3 {
         z = 3*2+1;
