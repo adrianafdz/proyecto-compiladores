@@ -11,6 +11,14 @@
 #   tabla_vars = {nombre: nombre, tipo, dimension, memoria}
 ###------------------
 
+# funcion de indexacion para arreglos y variables
+def index(base, dim, index1, index2 = None):
+    if len(dim) == 1:
+        return base + int(index1)
+    elif len(dim) == 2:
+        return base + int(index1) * int(dim[1]) + int(index2)
+
+
 class tablaVars:
 
     #Constructor para la tabla de variables

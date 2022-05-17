@@ -23,7 +23,7 @@ pilaSaltos = deque()
 
 tipos = [0, 1, 2] # number, string, nothing
 curr_tipo = 0
-dimension = None
+dimension = ('1')
 dim1 = None
 dim2 = None
 var_ctrl = None # para el for loop
@@ -36,6 +36,14 @@ dirFuncG = None # directorio de funciones global
 dirFuncObj = None # directorio de funciones de un objeto
 check_obj = None
 constantes = tablaVars()
+
+def calc_size(dim): # calcular el tamaño de una variable
+    if dim == None:
+        return 1
+    if len(dim) == 1:
+        return int(dim[0])
+    elif len(dim) == 2:
+        return int(dim[1]) * int(dim[0])
 
 ####################################################
 # LEX (scanner)
@@ -136,8 +144,6 @@ def p_f_end(p):
     # CALCULAR RECURSOS
     recursos = dirGlobal + (dirTemp - 7000)
     curr_dir[-1].add_resources(curr_func[-1], recursos)
-    curr_func.pop()
-
     # print(curr_dir[-1])
     curr_dir[-1].delete_dir()
     curr_func.pop()
@@ -222,7 +228,7 @@ def p_f_varsobj(p):
     else:
         print("UNDECLARED OBJECT, line ", lexer.lineno)
         found_error = True
-    dimension = None
+    dimension = ('1')
 
 def p_cvars(p):
     '''cvars : cvars DEF tipo dimension ':' lista_id ';'
@@ -241,31 +247,31 @@ def p_f_vars(p):
             found_error = True
 
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobal)
-        dirGlobal += 1
+        dirGlobal += calc_size(dimension)
     else:
         if dirLocal == 7000:
             print("MEMORIA LOCAL LLENA")
             found_error = True
 
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
-        dirLocal += 1
+        dirLocal += calc_size(dimension)
 
-    dimension = None
+    dimension = ('1')
 
 def p_dimension(p): 
-    '''dimension : '[' expresion f_dim1 ']' f_onedim
-                 | '[' expresion f_dim1 ']' '[' expresion f_dim2 ']' f_twodim
+    '''dimension : '[' NUM f_dim1 ']' f_onedim
+                 | '[' NUM f_dim1 ']' '[' NUM f_dim2 ']' f_twodim
                  | empty'''
 
 def p_f_dim1(p):
     "f_dim1 :"
     global dim1
-    dim1 = pilaOperandos.pop()
+    dim1 = p[-1]
 
 def p_f_dim2(p):
     "f_dim2 :"
     global dim2
-    dim2 = pilaOperandos.pop()
+    dim2 = p[-1]
 
 def p_f_onedim(p):
     "f_onedim :"
@@ -362,8 +368,13 @@ def p_asignacion(p):
     cuadruplos.add(pilaOperadores.pop(), pilaOperandos.pop(), None, pilaOperandos.pop())
 
 def p_var(p):
-    '''var : ID f_varobj ':' ID f_verify_type_composite dimension
-           | ID f_verify_type dimension'''
+    '''var : ID f_varobj ':' ID f_verify_type_composite indexacion
+           | ID f_verify_type indexacion'''
+
+def p_indexacion(p):
+    '''indexacion : '[' expresion ']'
+                 | '[' expresion ']' '[' expresion ']'
+                 | empty'''
 
 def p_f_varobj(p):
     "f_varobj :"

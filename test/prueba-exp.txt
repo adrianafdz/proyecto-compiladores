@@ -8,7 +8,9 @@ type objeto {
 }
 
 def objeto : o;
-def number : r;
+def number[3] : r;
+def number[3][2] : q;
+def number : x;
 
 func f1(string t): nothing {
     def number : d;
@@ -17,7 +19,7 @@ func f1(string t): nothing {
 
 
 main() {
-    r = 3 * 2;
+    r = 3 * q[1+4][2];
     call o:f2();
 
     if (r == 4) then {
