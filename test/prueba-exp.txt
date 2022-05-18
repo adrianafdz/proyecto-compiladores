@@ -1,34 +1,20 @@
 program prueba3;
 
 type objeto {
-    func f2(number x): nothing {
-        def number : r;
-        r = 2 + 4;
-    }
+    def number : y, z;
 }
 
-def objeto : o;
-def number[3] : r;
-def number[3][2] : q;
+def objeto : p;
 def number : x;
 
-func f1(string t): nothing {
-    def number : d;
-    d = 2 + 3;
+func f1(number n) : number {
+    def objeto : ob;
+
+    n = ob:z;
 }
 
-
 main() {
-    r = 3 * q[1+4][2];
-    call o:f2();
-
-    if (r == 4) then {
-        r = r + 2 * 5;
-    } else {
-        r = r - 8 / 2;
-    }
-
-    r = 10 / 2;
+    x = p:y;
 }
 
 end;

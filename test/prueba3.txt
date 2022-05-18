@@ -1,0 +1,14 @@
+program prueba3;
+
+def number : d;
+
+func f1(string t): nothing {
+    d = 2 + 3;
+}
+
+
+main() {
+    d = 3 / 2;
+}
+
+end;

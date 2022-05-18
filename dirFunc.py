@@ -94,6 +94,13 @@ class dirFunc:
             print("Error: el objeto", str(nombre), "no existe")
             return None
 
+    def get_obj_resources(self, nombre):
+        if nombre in self.dir_func:
+            return self.dir_func[nombre]['recursos']
+        else:
+            print("Error: el objeto", str(nombre), "no existe")
+            return None
+
     def copy_class_to(self, padre, hijo):
         p = self.dir_func[padre]
         if padre in self.dir_func:
@@ -110,7 +117,7 @@ class dirFunc:
 
             return True
         else:
-            print("Error: no existe la clase", str(nombre))
+            print("Error: no existe la clase", str(padre))
             return False
             
 

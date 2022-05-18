@@ -171,7 +171,10 @@ def p_f_clasepadre(p):
 
 def p_f_cvars(p):
     "f_cvars :"
+    global dirLocal
+    curr_dir[-1].add_resources(curr_func[-1], dirLocal - 4000)
     curr_dir.append(dirFuncObj)
+    dirLocal = 4000
 
 def p_f_endclass(p):
     "f_endclass :"
@@ -203,20 +206,20 @@ def p_f_tipofunc(p):
 def p_f_endfunc(p):
     "f_endfunc :"
     global dirLocal, dirTemp
-    curr_dir[-1].delete_var_table(curr_func[-1])
+    # curr_dir[-1].delete_var_table(curr_func[-1])
     # CALCULAR RECURSOS
     recursos = (dirLocal - 4000) + (dirTemp - 7000)
     curr_dir[-1].add_resources(curr_func[-1], recursos)
     curr_func.pop()
 
-    cuadruplos.add("GOBACK", None, None, None) # cuadruplo para regresar al programa principal
+    cuadruplos.add("ENDFUNC", None, None, None) # cuadruplo para regresar al programa principal
 
     dirLocal = 4000 # reinicia direcciones locales y temporales
     dirTemp = 7000
 
 def p_vars(p):
     '''vars : vars DEF tipo dimension ':' lista_id ';'
-            | vars DEF ID f_varsobj ':' lista_id ';'
+            | vars DEF ID f_varsobj ':' lista_id_obj ';'
             | empty'''
 
 def p_f_varsobj(p):
@@ -255,6 +258,32 @@ def p_f_vars(p):
 
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
         dirLocal += calc_size(dimension)
+
+    dimension = ('1')
+
+def p_lista_id_obj(p): 
+    '''lista_id_obj : ID f_vars_obj
+                    | lista_id_obj ',' ID f_vars_obj'''
+
+def p_f_vars_obj(p):
+    "f_vars_obj :"
+    global dirGlobal, dirLocal, found_error, dimension
+    obj_size = curr_dir[0].get_obj_resources(curr_tipo)
+
+    if len(curr_func) == 1: # esta en variables globales
+        if dirGlobal == 4000:
+            print("MEMORIA GLOBAL LLENA")
+            found_error = True
+
+        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobal)
+        dirGlobal += obj_size
+    else:
+        if dirLocal == 7000:
+            print("MEMORIA LOCAL LLENA")
+            found_error = True
+
+        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
+        dirLocal += obj_size
 
     dimension = ('1')
 
@@ -306,7 +335,9 @@ def p_pparams(p):
 
 def p_f_param(p):
     "f_param :"
-    curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, 0)
+    global dirLocal
+    curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
+    dirLocal += 1
     curr_dir[-1].add_param(curr_func[-1], curr_tipo)
 
 def p_estatutos(p):
@@ -387,8 +418,15 @@ def p_f_verify_type(p):
     var_type, var_mem = curr_dir[-1].get_var(curr_func[-1], p[-1])
     
     if var_type == -1:
-        print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno)
-        found_error = True
+        if len(curr_func) > 1: # la estaba buscando localmente, ahora buscar global
+            var_type, var_mem = curr_dir[0].get_var(curr_func[0], p[-1])
+             
+        if var_type == -1:
+            print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno) # local
+            found_error = True
+        else:
+            pilaOperandos.append(var_mem)
+            pilaTipos.append(var_type)
     else:
         pilaOperandos.append(var_mem)
         pilaTipos.append(var_type)
@@ -396,15 +434,19 @@ def p_f_verify_type(p):
 def p_f_verify_type_composite(p):
     "f_verify_type_composite :"
     global found_error
-    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+    obj_type, obj_mem = curr_dir[0].get_var(curr_func[-1], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+    
     obj_vars = curr_dir[0].get_vars_from_obj(obj_type) # trae la tabla de variables de ese objeto
     var_type, var_mem = obj_vars.get_var(p[-1]) # trae el tipo y la memoria del atributo
+
+    # la direccion real de la memoria depende de la memoria base del objeto, como si los atributos estuvieran en un arreglo
+    real_mem = obj_mem + (var_mem - 4000)
 
     if var_type == -1:
         print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno)
         found_error = True
     else:
-        pilaOperandos.append(var_mem)
+        pilaOperandos.append(real_mem)
         pilaTipos.append(var_type)
 
 def p_expresion(p):
