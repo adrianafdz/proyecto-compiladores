@@ -2,10 +2,16 @@ program prueba3;
 
 type objeto {
     def number : y, z;
+
+    func f2(number n, string s) : number {
+        def number: x,y,z,w,v;
+    }
 }
 
-def objeto : p;
 def number : x;
+def objeto : p;
+def string : st;
+
 
 func f1(number n) : number {
     def objeto : ob;
@@ -14,7 +20,7 @@ func f1(number n) : number {
 }
 
 main() {
-    x = p:y;
+    call p:f2(1);
 }
 
 end;

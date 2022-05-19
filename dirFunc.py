@@ -69,8 +69,10 @@ class dirFunc:
     def add_param(self, func, tipo):
         if 'params' not in self.dir_func[func]:
             self.dir_func[func]['params'] = [tipo]
+            self.dir_func[func]['params_count'] = 1
         else:
             self.dir_func[func]['params'].append(tipo)
+            self.dir_func[func]['params_count'] += 1
 
     def create_dir_for_obj(self, nombre):
         if nombre in self.dir_func:
@@ -94,11 +96,18 @@ class dirFunc:
             print("Error: el objeto", str(nombre), "no existe")
             return None
 
-    def get_obj_resources(self, nombre):
+    def get_resources(self, nombre):
         if nombre in self.dir_func:
             return self.dir_func[nombre]['recursos']
         else:
-            print("Error: el objeto", str(nombre), "no existe")
+            print("Error:", str(nombre), "no existe")
+            return None
+
+    def get_params(self, nombre):
+        if nombre in self.dir_func:
+            return self.dir_func[nombre]['params']
+        else:
+            print("Error: la función", str(nombre), "no existe")
             return None
 
     def copy_class_to(self, padre, hijo):

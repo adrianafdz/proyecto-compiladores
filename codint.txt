@@ -1,4 +1,7 @@
-GOTO,None,None,4
-=,4002,None,4000
-ENDFUNC,None,None,None
-=,0,None,2
+GOTO,-1,-1,5
+ENDFUNC,-1,-1,-1
+=,4002,-1,4000
+ENDFUNC,-1,-1,-1
+GOSUB,-1,-1,2
+ERA,7,-1,-1
+PARAMETER,10000,1,-1

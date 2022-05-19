@@ -31,11 +31,13 @@ var_ctrl_type = None
 
 curr_dir = deque()
 curr_func = deque()
+constantes = tablaVars()
 
 dirFuncG = None # directorio de funciones global
 dirFuncObj = None # directorio de funciones de un objeto
 check_obj = None
-constantes = tablaVars()
+param_list = []
+param_count = 0
 
 def calc_size(dim): # calcular el tamaño de una variable
     if dim == None:
@@ -127,7 +129,7 @@ def p_f_start(p):
     dirFuncG = dirFunc()
     curr_dir.append(dirFuncG)
     pilaSaltos.append(cuadruplos.get_cont())
-    cuadruplos.add("GOTO", None, None, None)
+    cuadruplos.add("GOTO", -1, -1, -1)
 
 def p_f_prog(p):
     "f_prog :"
@@ -206,13 +208,13 @@ def p_f_tipofunc(p):
 def p_f_endfunc(p):
     "f_endfunc :"
     global dirLocal, dirTemp
-    # curr_dir[-1].delete_var_table(curr_func[-1])
+    curr_dir[-1].delete_var_table(curr_func[-1])
     # CALCULAR RECURSOS
     recursos = (dirLocal - 4000) + (dirTemp - 7000)
     curr_dir[-1].add_resources(curr_func[-1], recursos)
     curr_func.pop()
 
-    cuadruplos.add("ENDFUNC", None, None, None) # cuadruplo para regresar al programa principal
+    cuadruplos.add("ENDFUNC", -1, -1, -1) # cuadruplo para regresar al programa principal
 
     dirLocal = 4000 # reinicia direcciones locales y temporales
     dirTemp = 7000
@@ -268,7 +270,7 @@ def p_lista_id_obj(p):
 def p_f_vars_obj(p):
     "f_vars_obj :"
     global dirGlobal, dirLocal, found_error, dimension
-    obj_size = curr_dir[0].get_obj_resources(curr_tipo)
+    obj_size = curr_dir[0].get_resources(curr_tipo)
 
     if len(curr_func) == 1: # esta en variables globales
         if dirGlobal == 4000:
@@ -365,17 +367,21 @@ def p_func(p):
 
 def p_f_verify_func(p):
     "f_verify_func :"
-    global found_error
+    global found_error, param_list, param_count
     f_type, f_start = curr_dir[0].get_func(p[-1])
     if f_type == -1:
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
-        cuadruplos.add("GOTOSUB", None, None, f_start)
+        cuadruplos.add("GOSUB", -1, -1, f_start)
+        recursos = curr_dir[0].get_resources(p[-1])
+        param_list = curr_dir[0].get_params(p[-1])
+        cuadruplos.add("ERA", recursos, -1, -1)
+        param_count = 0
 
 def p_f_verify_func_composite(p):
     "f_verify_func_composite :"
-    global found_error
+    global found_error, param_list, param_count
     obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
     obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
     f_type, f_start = obj_funcs.get_func(p[-1])
@@ -384,19 +390,48 @@ def p_f_verify_func_composite(p):
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
-        cuadruplos.add("GOTOSUB", None, None, f_start)
+        cuadruplos.add("GOSUB", -1, -1, f_start)
+        recursos = obj_funcs.get_resources(p[-1])
+        param_list = obj_funcs.get_params(p[-1])
+        cuadruplos.add("ERA", recursos, -1, -1)
+        param_count = 0
 
 def p_args(p):
-    '''args : args_list
-            | empty'''
+    '''args : args_list f_end_args
+            | f_end_args'''
 
 def p_args_list(p):
-    '''args_list : expresion 
-                 | args_list ',' expresion'''
+    '''args_list : expresion f_arg
+                 | args_list ',' expresion f_arg'''
+
+def p_f_arg(p):
+    "f_arg :"
+    global found_error, param_count
+    
+    arg = pilaOperandos.pop()
+    arg_type = pilaTipos.pop()
+
+    param_count += 1
+
+    if param_count > len(param_list):
+        print("ERROR: Too many arguments, line", lexer.lineno)
+    else:
+        if arg_type == param_list[param_count-1]:
+            cuadruplos.add("PARAMETER", arg, param_count, -1)
+        else:
+            print("ERROR: Wrong argument type, line", lexer.lineno, ". Argument", param_count)
+            found_error = True
+
+def p_f_end_args(p):
+    "f_end_args :"
+    global found_error
+    if param_count < len(param_list):
+        print("ERROR: Missing arguments, line", lexer.lineno)
+        found_error = True
 
 def p_asignacion(p):
     '''asignacion : var '=' f_oper expresion ';' '''
-    cuadruplos.add(pilaOperadores.pop(), pilaOperandos.pop(), None, pilaOperandos.pop())
+    cuadruplos.add(pilaOperadores.pop(), pilaOperandos.pop(), -1, pilaOperandos.pop())
 
 def p_var(p):
     '''var : ID f_varobj ':' ID f_verify_type_composite indexacion
@@ -599,7 +634,7 @@ def p_f_if(p):
     exp_type = pilaTipos.pop()
     if exp_type == 0:
         res = pilaOperandos.pop()
-        cuadruplos.add("GOTOF", res, None, None)
+        cuadruplos.add("GOTOF", res, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1)
     else:
         print("ERROR: Type mismatch, line", lexer.lineno)
@@ -611,7 +646,7 @@ def p_f_endif(p):
 
 def p_f_else(p):
     "f_else :"
-    cuadruplos.add("GOTO", None, None, None)
+    cuadruplos.add("GOTO", -1, -1, -1)
     falso = pilaSaltos.pop()
     pilaSaltos.append(cuadruplos.get_cont() - 1)
     cuadruplos.fill(falso, cuadruplos.get_cont())
@@ -628,7 +663,7 @@ def p_f_exprwhile(p):
     exp_type = pilaTipos.pop()
     if exp_type == 0:
         res = pilaOperandos.pop()
-        cuadruplos.add("GOTOF", res, None, None)
+        cuadruplos.add("GOTOF", res, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1)
     else:
         print("ERROR: Type mismatch, line", lexer.lineno)
@@ -637,7 +672,7 @@ def p_f_endwhile(p):
     "f_endwhile :"
     fin = pilaSaltos.pop()
     ret = pilaSaltos.pop()
-    cuadruplos.add("GOTO", None, None, ret)
+    cuadruplos.add("GOTO", -1, -1, ret)
     cuadruplos.fill(fin, cuadruplos.get_cont())
 
 def p_for(p):
@@ -662,7 +697,7 @@ def p_f_for_to(p):
     if exp_type == 0:
         pilaSaltos.append(cuadruplos.get_cont()) # para el retorno
         cuadruplos.add(">", var_ctrl, exp, dirTemp) # el for será inclusive
-        cuadruplos.add("GOTOV", dirTemp, None, None)
+        cuadruplos.add("GOTOV", dirTemp, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1) # GotoV
         dirTemp += 1
     else:
@@ -673,12 +708,12 @@ def p_f_for_end(p):
     "f_for_end :" 
     global dirTemp
     cuadruplos.add("+", var_ctrl, "1", dirTemp) # sumar 1 a la var de control
-    cuadruplos.add("=", dirTemp, None, var_ctrl) # asignar el resultado a la var de control
+    cuadruplos.add("=", dirTemp, -1, var_ctrl) # asignar el resultado a la var de control
     dirTemp += 1
 
     fin = pilaSaltos.pop()
     retorno = pilaSaltos.pop()
-    cuadruplos.add("GOTO", None, None, retorno)
+    cuadruplos.add("GOTO", -1, -1, retorno)
     cuadruplos.fill(fin, cuadruplos.get_cont())
 
 def p_to_num(p):
@@ -686,7 +721,7 @@ def p_to_num(p):
               | TO_NUMBER '(' var ')' '''
     global dirTemp, found_error
     if pilaTipos[-1] == 1:
-        cuadruplos.add("CNUM", pilaOperandos.pop(), None, dirTemp)
+        cuadruplos.add("CNUM", pilaOperandos.pop(), -1, dirTemp)
         pilaTipos.pop()
         pilaOperandos.append(dirTemp)
         pilaTipos.append(0)
@@ -699,7 +734,7 @@ def p_to_str(p):
     '''to_str : TO_STRING '(' expresion ')' '''
     global dirTemp, found_error
     if pilaTipos[-1] == 0:
-        cuadruplos.add("CSTR", pilaOperandos.pop(), None, dirTemp)
+        cuadruplos.add("CSTR", pilaOperandos.pop(), -1, dirTemp)
         pilaTipos.pop()
         pilaOperandos.append(dirTemp)
         pilaTipos.append(1)
@@ -710,7 +745,7 @@ def p_to_str(p):
 
 def p_input(p):
     '''input : INPUT '(' var ')' '''
-    cuadruplos.add("READ", None, None, pilaOperandos.pop())
+    cuadruplos.add("READ", -1, -1, pilaOperandos.pop())
 
 def p_write(p):
     '''write : PRINT '(' write_list ')' '''
@@ -726,11 +761,11 @@ def p_write_listp(p):
     if len(p) == 1:
         pilaOperandos.append(p[1])
     
-    cuadruplos.add("PRINT", None, None, pilaOperandos.pop())
+    cuadruplos.add("PRINT", -1, -1, pilaOperandos.pop())
 
 def p_return(p):
     '''return : RET '(' expresion ')' '''
-    cuadruplos.add("RET", None, None, pilaOperandos[-1])
+    cuadruplos.add("RET", -1, -1, pilaOperandos[-1])
 
 def p_empty(p):
     'empty :'
