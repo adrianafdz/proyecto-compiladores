@@ -27,7 +27,7 @@ dimension = ('1')
 dim1 = None
 dim2 = None
 var_ctrl = None # para el for loop
-var_ctrl_type = None 
+var_ctrl_type = None
 
 curr_dir = deque()
 curr_func = deque()
@@ -368,14 +368,14 @@ def p_func(p):
 def p_f_verify_func(p):
     "f_verify_func :"
     global found_error, param_list, param_count
-    f_type, f_start = curr_dir[0].get_func(p[-1])
+    f_type, f_start = curr_dir[-1].get_func(p[-1])
     if f_type == -1:
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
         cuadruplos.add("GOSUB", -1, -1, f_start)
-        recursos = curr_dir[0].get_resources(p[-1])
-        param_list = curr_dir[0].get_params(p[-1])
+        recursos = curr_dir[-1].get_resources(p[-1])
+        param_list = curr_dir[-1].get_params(p[-1])
         cuadruplos.add("ERA", recursos, -1, -1)
         param_count = 0
 
@@ -765,7 +765,17 @@ def p_write_listp(p):
 
 def p_return(p):
     '''return : RET '(' expresion ')' '''
-    cuadruplos.add("RET", -1, -1, pilaOperandos[-1])
+    global found_error
+    res = pilaOperandos.pop()
+    res_type = pilaTipos.pop()
+
+    f_type, f_start = curr_dir[-1].get_func(curr_func[-1])
+
+    if res_type == f_type:
+        cuadruplos.add("RET", -1, -1, res)
+    else:
+        print("ERROR: Type Mismatch, line", lexer.lineno)
+        found_error = True
 
 def p_empty(p):
     'empty :'
