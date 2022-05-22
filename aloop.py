@@ -23,7 +23,7 @@ pilaSaltos = deque()
 
 tipos = [0, 1, 2] # number, string, nothing
 curr_tipo = 0
-dimension = ('1')
+dimension = None
 dim1 = None
 dim2 = None
 var_ctrl = None # para el for loop
@@ -93,11 +93,15 @@ t_COMP = r'(<>|<|>|==)'
 t_OPTERM = r'\+|\-'
 t_OPFACT = r'\*|\/'
 t_STR = r'".*"'
-t_NUM = r'[0-9]+(\.[0-9]+)?'
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     t.type = reserved.get(t.value,'ID')    # Check for reserved words
+    return t
+
+def t_NUM(t):
+    r'[0-9]+(\.[0-9]+)?'
+    t.value = float(t.value)
     return t
 
 # Track line numbers
@@ -146,7 +150,8 @@ def p_f_end(p):
     # CALCULAR RECURSOS
     recursos = dirGlobal + (dirTemp - 7000)
     curr_dir[-1].add_resources(curr_func[-1], recursos)
-    # print(curr_dir[-1])
+    print(curr_dir[-1])
+    print(constantes)
     curr_dir[-1].delete_dir()
     curr_func.pop()
 
@@ -233,7 +238,7 @@ def p_f_varsobj(p):
     else:
         print("UNDECLARED OBJECT, line ", lexer.lineno)
         found_error = True
-    dimension = ('1')
+    dimension = None
 
 def p_cvars(p):
     '''cvars : cvars DEF tipo dimension ':' lista_id ';'
@@ -261,7 +266,7 @@ def p_f_vars(p):
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
         dirLocal += calc_size(dimension)
 
-    dimension = ('1')
+    dimension = None
 
 def p_lista_id_obj(p): 
     '''lista_id_obj : ID f_vars_obj
@@ -287,7 +292,7 @@ def p_f_vars_obj(p):
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
         dirLocal += obj_size
 
-    dimension = ('1')
+    dimension = None
 
 def p_dimension(p): 
     '''dimension : '[' NUM f_dim1 ']' f_onedim
@@ -296,25 +301,32 @@ def p_dimension(p):
 
 def p_f_dim1(p):
     "f_dim1 :"
-    global dim1
+    global dim1, dirConst
     dim1 = p[-1]
+
+    if not constantes.check_var(p[-1]):
+        constantes.add_var(p[-1], 0, None, dirConst)
+        dirConst += 1
 
 def p_f_dim2(p):
     "f_dim2 :"
-    global dim2
+    global dim2, dirConst
     dim2 = p[-1]
+    if not constantes.check_var(p[-1]):
+        constantes.add_var(p[-1], 0, None, dirConst)
+        dirConst += 1
 
 def p_f_onedim(p):
     "f_onedim :"
     global dimension, dim1, dim2
-    dimension = (dim1)
+    dimension = [dim1]
     dim1 = None
     dim2 = None
 
 def p_f_twodim(p):
     "f_twodim :"
     global dimension, dim1, dim2
-    dimension = (dim1, dim2)
+    dimension = [dim1, dim2]
     dim1 = None
     dim2 = None
 
@@ -584,12 +596,12 @@ def p_fact(p):
     global dirConst
     if p[1] == '-':
         pilaTipos.append(0)
-        if not constantes.check_var("-" + p[2]):
-            constantes.add_var("-" + p[2], 0, None, dirConst)
+        if not constantes.check_var(-1 * p[2]):
+            constantes.add_var(-1 * p[2], 0, None, dirConst)
             pilaOperandos.append(dirConst)
             dirConst += 1
         else:
-            var_tipo, var_mem = constantes.get_var("-" + p[2])
+            var_tipo, var_mem = constantes.get_var(-1 * p[2])
             pilaOperandos.append(var_mem)
     elif p[1] == '+':
         pilaTipos.append(0)
