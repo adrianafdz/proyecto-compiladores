@@ -55,3 +55,6 @@ Generación de código de expresiones y estatutos secuenciales.
 
 ## Cuarto Avance
 Generación de código para condicionales (if-else) y bucles (while).
+
+## Quinto Avance
+Generación de cuádruplos del bucle for, generación de cuádruplos de funciones, uso de direcciones virtuales, validación de parámetros y argumentos

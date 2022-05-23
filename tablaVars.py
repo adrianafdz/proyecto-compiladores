@@ -43,6 +43,17 @@ class tablaVars:
             }
             return True
 
+    def add_return_value(self, nombre, tipo, memoria):
+        self.tabla_vars[nombre] = {
+            'nombre' : nombre,
+            'tipo' : tipo,
+            'dimension' : None,
+            'memoria' : memoria
+        }
+
+    def get_return_value(self, nombre):
+        return self.tabla_vars[nombre]['memoria'], self.tabla_vars[nombre]['tipo']
+
     def get_var(self, nombre):
         if self.check_var(nombre):
             return (self.tabla_vars[nombre]['tipo'], self.tabla_vars[nombre]['memoria'])
@@ -63,34 +74,25 @@ class tablaVars:
         else:
             return -1
 
-    #Regresar la dimesion de una variable especifica
-    def searchMem_var(self, nombre):
-        if self.check_var(nombre):
+    def get_dim(self, nombre):
+        if nombre in self.tabla_vars and 'dimension' in self.tabla_vars[nombre]:
             return self.tabla_vars[nombre]['dimension']
-        else:
-            return None
-
-    #Regresar la posición de memoria de una variable especifica
-    def searchMem_var(self, nombre):
-        if self.check_var(nombre):
-            return self.tabla_vars[nombre]['memoria']
-        else:
-            return None
+        return False
 
     def __repr__(self):
         output = ""
         for key1, value1 in self.tabla_vars.items():
-            output += key1 + ' : { \n'
+            output += str(key1) + ' : { \n'
             for key2, value2 in value1.items():
-                output += key2 + ' : ' + value2 + '\n'
+                output += str(key2) + ' : ' + str(value2) + '\n'
             output += '} \n'
         return output
 
     def __str__(self):
         output = ""
         for key1, value1 in self.tabla_vars.items():
-            output += '\t' + key1 + ' : { \n'
+            output += '\t' + str(key1) + ' : { \n'
             for key2, value2 in value1.items():
-                output += '\t\t' + key2 + ' : ' + str(value2) + '\n'
+                output += '\t\t' + str(key2) + ' : ' + str(value2) + '\n'
             output += '\t } \n'
         return output

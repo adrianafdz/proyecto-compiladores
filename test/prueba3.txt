@@ -1,14 +1,9 @@
 program prueba3;
 
-def number : d;
-
-func f1(string t): nothing {
-    d = 2 + 3;
-}
-
+def number[2][4] : x;
 
 main() {
-    d = 3 / 2;
+    x[1][2] = 3;
 }
 
 end;

@@ -20,7 +20,7 @@ func f1(number n) : number {
 }
 
 main() {
-    call p:f2(1);
+    x = call f1(2);
 }
 
 end;

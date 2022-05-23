@@ -66,6 +66,12 @@ class dirFunc:
         # regresa el tipo y la direccion de memoria
         return self.dir_func[func]['vars'].get_var(nombre) 
 
+    def add_return_value(self, func, tipo, memoria):
+        return self.dir_func[func]['vars'].add_return_value(func, tipo, memoria)
+
+    def get_return_value(self, func):
+        return self.dir_func[func]['vars'].get_return_value(func)
+
     def add_param(self, func, tipo):
         if 'params' not in self.dir_func[func]:
             self.dir_func[func]['params'] = [tipo]
@@ -129,6 +135,8 @@ class dirFunc:
             print("Error: no existe la clase", str(padre))
             return False
             
+    def get_dim(self, func, nombre):
+        return self.dir_func[func]['vars'].get_dim(nombre)
 
     def delete_func(self, nombre):
         del self.dir_func[nombre]

@@ -1,3 +1,4 @@
+from dimStructure import DimStructure
 import ply.lex as lex
 import ply.yacc as yacc
 from collections import deque
@@ -28,6 +29,9 @@ dim1 = None
 dim2 = None
 var_ctrl = None # para el for loop
 var_ctrl_type = None
+has_dim = False
+dim = 1
+base_dir = 0
 
 curr_dir = deque()
 curr_func = deque()
@@ -38,14 +42,6 @@ dirFuncObj = None # directorio de funciones de un objeto
 check_obj = None
 param_list = []
 param_count = 0
-
-def calc_size(dim): # calcular el tamaño de una variable
-    if dim == None:
-        return 1
-    if len(dim) == 1:
-        return int(dim[0])
-    elif len(dim) == 2:
-        return int(dim[1]) * int(dim[0])
 
 ####################################################
 # LEX (scanner)
@@ -257,14 +253,22 @@ def p_f_vars(p):
             found_error = True
 
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobal)
-        dirGlobal += calc_size(dimension)
+        
+        if dimension is None:
+            dirGlobal += 1
+        else:
+            dirGlobal += dimension.get_size()
     else:
         if dirLocal == 7000:
             print("MEMORIA LOCAL LLENA")
             found_error = True
 
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
-        dirLocal += calc_size(dimension)
+
+        if dimension is None:
+            dirLocal += 1
+        else:
+            dirLocal += dimension.get_size()
 
     dimension = None
 
@@ -301,34 +305,40 @@ def p_dimension(p):
 
 def p_f_dim1(p):
     "f_dim1 :"
-    global dim1, dirConst
+    global dim1, dirConst, dimension
     dim1 = p[-1]
 
     if not constantes.check_var(p[-1]):
         constantes.add_var(p[-1], 0, None, dirConst)
         dirConst += 1
 
+    dimension = DimStructure()
+    dimension.add_upper_lim(dim1)
+
 def p_f_dim2(p):
     "f_dim2 :"
-    global dim2, dirConst
+    global dim2, dirConst, dimension
     dim2 = p[-1]
+
     if not constantes.check_var(p[-1]):
         constantes.add_var(p[-1], 0, None, dirConst)
         dirConst += 1
 
+    dimension.add_upper_lim(dim2)
+
 def p_f_onedim(p):
     "f_onedim :"
     global dimension, dim1, dim2
-    dimension = [dim1]
     dim1 = None
     dim2 = None
+    dimension.solve()
 
 def p_f_twodim(p):
     "f_twodim :"
     global dimension, dim1, dim2
-    dimension = [dim1, dim2]
     dim1 = None
     dim2 = None
+    dimension.solve()
 
 def p_tipo(p): 
     '''tipo : NUMBER 
@@ -450,9 +460,9 @@ def p_var(p):
            | ID f_verify_type indexacion'''
 
 def p_indexacion(p):
-    '''indexacion : '[' expresion ']'
-                 | '[' expresion ']' '[' expresion ']'
-                 | empty'''
+    '''indexacion : f_start_array '[' expresion f_index ']' f_end_array
+                 | f_start_array '[' expresion f_index ']' '[' f_next_index expresion f_index ']' f_end_array
+                 | f_no_index empty'''
 
 def p_f_varobj(p):
     "f_varobj :"
@@ -461,8 +471,10 @@ def p_f_varobj(p):
 
 def p_f_verify_type(p):
     "f_verify_type :"
-    global found_error
+    global found_error, has_dim, base_dir
     var_type, var_mem = curr_dir[-1].get_var(curr_func[-1], p[-1])
+    has_dim = curr_dir[-1].get_dim(curr_func[-1], p[-1])
+    base_dir = var_mem
     
     if var_type == -1:
         if len(curr_func) > 1: # la estaba buscando localmente, ahora buscar global
@@ -495,6 +507,84 @@ def p_f_verify_type_composite(p):
     else:
         pilaOperandos.append(real_mem)
         pilaTipos.append(var_type)
+
+def p_f_no_index(p):
+    "f_no_index :"
+    global found_error
+    if has_dim:
+        print("ERROR: indexable variable, line", lexer.lineno)
+        found_error = True
+
+def p_f_start_array(p):
+    "f_start_array :"
+    global dim, found_error
+    if not has_dim:
+        print("Error: variable not indexable, line", lexer.lineno)
+        found_error = True
+    else:
+        print("base", base_dir)
+        arr = pilaOperandos.pop()
+        arr_type = pilaTipos.pop()
+        dim = 1
+        pilaOperadores.append('(') # fake bottom
+
+def p_f_index(p):
+    "f_index :"
+    global dirTemp, dirConst
+    lim_sup, m = has_dim.get_node(dim)
+
+    if not constantes.check_var(0):
+        constantes.add_var(0, 0, None, dirConst)
+        const_mem = dirConst
+        dirConst += 1
+    else:
+        const_tipo, const_mem = constantes.get_var(0)
+
+    if not constantes.check_var(lim_sup):
+        constantes.add_var(lim_mem, 0, None, dirConst)
+        lim_mem = dirConst
+        dirConst += 1
+    else:
+        const_tipo, lim_mem = constantes.get_var(lim_sup)
+
+    cuadruplos.add("VERIFY", pilaOperandos[-1], const_mem, lim_mem)
+
+    if not has_dim.is_last_node(dim):
+        aux = pilaOperandos.pop()
+        cuadruplos.add("*", aux, m, dirTemp)
+        pilaOperandos.append(dirTemp)
+        dirTemp += 1
+
+    if dim > 1:
+        aux2 = pilaOperandos.pop()
+        aux1 = pilaOperandos.pop()
+        cuadruplos.add("+", aux1, aux2, dirTemp)
+        pilaOperandos.append(dirTemp)
+        dirTemp += 1
+
+def p_f_next_index(p):
+    "f_next_index :"
+    global dim
+    dim += 1
+    # update dim ?
+
+def p_f_end_array(p):
+    "f_end_array :"
+    global dirTemp, found_error
+    num_dims = has_dim.get_num_dims()
+
+    if dim < num_dims:
+        print("ERROR: missing indexes, line", lexer.lineno)
+        found_error = True
+
+    aux1 = pilaOperandos.pop()
+    const_tipo, const_mem = constantes.get_var(0) # K = 0
+    cuadruplos.add("+", aux1, const_mem, dirTemp)
+    cuadruplos.add("+", dirTemp, base_dir, dirTemp+1)
+    dirTemp += 2
+
+    pilaOperandos.append(dirTemp-1) # APUNTADOR
+    pilaOperadores.pop() # quitar fake bottom
 
 def p_expresion(p):
     '''expresion : exp
