@@ -23,7 +23,7 @@ class DimStructure:
     def print(self):
         print("R", self.R)
         print("dims", self.up_lim)
-        print("num ibdexes", self.DIM)
+        print("num indexes", self.DIM)
         print("m", self.m)
         print("size", self.size)
 

@@ -52,7 +52,9 @@ class tablaVars:
         }
 
     def get_return_value(self, nombre):
-        return self.tabla_vars[nombre]['memoria'], self.tabla_vars[nombre]['tipo']
+        if nombre not in self.tabla_vars:
+            return (-1, -1)
+        return self.tabla_vars[nombre]['tipo'], self.tabla_vars[nombre]['memoria']
 
     def get_var(self, nombre):
         if self.check_var(nombre):

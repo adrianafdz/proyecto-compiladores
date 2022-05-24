@@ -1,9 +1,29 @@
 program prueba3;
 
-def number[2][4] : x;
+type objeto {
+    def number : m, o;
+
+    func f1(): number {
+        def number : d;
+        call ret(o);
+    }
+}
+
+def number : r, x;
+def objeto: y;
+
+func f2(): number {
+    def number : d;
+    def objeto: obj;
+
+    d = obj:o;
+
+    call ret(x);
+}
 
 main() {
-    x[1][2] = 3;
+    x = 5;
+    x = call y:f1();
 }
 
 end;

@@ -10,10 +10,24 @@ from tablaVars import tablaVars
 found_error = False
 empty_file = True
 
-dirGlobal = 0 # 0 - 3999
-dirLocal = 4000 # 4000 - 6999
-dirTemp = 7000 # 7000 - 9999
-dirConst = 10000 # 10000 - 13999
+dirGlobalNum = 0 # 0 - 2999
+dirGlobalStr = 3000 # 3000 - 3999
+# dirGlobalBool = 4000 # 4000 - 4999
+
+dirLocalNum = 5000 # 5000 - 7999
+dirLocalStr = 8000 # 8000 - 8999
+dirLocalBool = 9000 # 9000 - 9999
+
+dirTempNum = 10000 # 10000 - 12999
+dirTempStr = 13000 # 13000 - 13999
+dirTempBool = 14000 # 14000 - 14999
+dirTempPoint = 15000 # 15000 - 15999
+
+dirConstNum = 16000 # 16000 - 20999
+dirConstStr = 21000 # 21000 - 25999
+
+dirObjNum = 0 # 0 - 2999
+dirObjStr = 3000 # 3000 - 4999
 
 cuadruplos = Cuadruplos()
 cubo = cuboSemantico()
@@ -22,8 +36,8 @@ pilaOperadores = deque()
 pilaTipos = deque()
 pilaSaltos = deque()
 
-tipos = [0, 1, 2] # number, string, nothing
-curr_tipo = 0
+tipos = [0, 1, 2, 3, 4, 5, 6] # number, string, bool, pointer, objeto, nothing
+curr_tipo = 6
 dimension = None
 dim1 = None
 dim2 = None
@@ -42,6 +56,74 @@ dirFuncObj = None # directorio de funciones de un objeto
 check_obj = None
 param_list = []
 param_count = 0
+
+def mem_available(scope, tipo):
+    if scope == 'global':
+        if tipo == 0: # number
+            return dirGlobalNum <= 2999
+        elif tipo == 1: # string
+            return dirGlobalStr <= 3999
+    elif scope == 'local':
+        if tipo == 0: # number
+            return dirLocalNum <= 7999
+        elif tipo == 1: # string
+            return dirLocalStr <= 8999
+        elif tipo == 3: # bool
+            return dirLocalBool <= 9999
+    elif scope == 'temp':
+        if tipo == 0: # number
+            return dirTempNum <= 12999
+        elif tipo == 1: # string
+            return dirTempStr <= 13999
+        elif tipo == 3: # bool
+            return dirTempBool <= 14999
+        elif tipo == 4: # point
+            return dirTempBool <= 15999
+    elif scope == 'constantes':
+        if tipo == 0:
+            return dirConstNum <= 20999
+        elif tipo == 1:
+            return dirConstStr <= 25999
+    elif scope == 'objeto':
+        if tipo == 0:
+            return dirObjNum <= 2999
+        elif tipo == 1:
+            return dirObjStr <= 4999
+    return False
+
+def add_memory(scope, tipo, cant):
+    global dirGlobalNum, dirGlobalStr, dirLocalNum, dirLocalStr, dirLocalBool, dirTempNum, dirTempStr, dirTempBool, dirTempPoint, dirConstNum, dirConstStr, dirObjNum, dirObjStr
+    if scope == 'global':
+        if tipo == 0: # number
+            dirGlobalNum += cant
+        elif tipo == 1: # string
+            dirGlobalStr += cant
+    elif scope == 'local':
+        if tipo == 0: # number
+            dirLocalNum += cant
+        elif tipo == 1: # string
+            dirLocalStr += cant
+        elif tipo == 2: # bool
+            dirLocalBool += cant
+    elif scope == 'temp':
+        if tipo == 0: # number
+            dirTempNum += cant
+        elif tipo == 1: # string
+            dirTempStr += cant
+        elif tipo == 2: # bool
+            dirTempBool += cant
+        elif tipo == 3: # point
+            dirTempPoint += cant
+    elif scope == 'constantes':
+        if tipo == 0:
+            dirConstNum += 1
+        elif tipo == 1:
+            dirConstStr += 1
+    elif scope == 'objeto':
+        if tipo == 0:
+            dirObjNum += 1
+        elif tipo == 1:
+            dirObjStr += 1
 
 ####################################################
 # LEX (scanner)
@@ -142,12 +224,15 @@ def p_f_main(p):
 
 def p_f_end(p):
     "f_end : "
-    global dirLocal, dirTemp
     # CALCULAR RECURSOS
-    recursos = dirGlobal + (dirTemp - 7000)
-    curr_dir[-1].add_resources(curr_func[-1], recursos)
+    recNum = dirGlobalNum + (dirTempNum - 10000)
+    recStr = dirGlobalStr - 3000 + (dirTempStr - 13000)
+    recBool = dirTempBool - 14000
+    recPoint = dirTempPoint - 15000
+
+    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPoint])
     print(curr_dir[-1])
-    print(constantes)
+    #print(constantes)
     curr_dir[-1].delete_dir()
     curr_func.pop()
 
@@ -162,7 +247,7 @@ def p_clase(p):
 def p_f_startclass(p):
     "f_startclass :"
     global dirFuncObj
-    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), 3)
+    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), 5)
     curr_func.append(p[-1])
     dirFuncObj = curr_dir[-1].create_dir_for_obj(curr_func[-1])
 
@@ -174,15 +259,20 @@ def p_f_clasepadre(p):
 
 def p_f_cvars(p):
     "f_cvars :"
-    global dirLocal
-    curr_dir[-1].add_resources(curr_func[-1], dirLocal - 4000)
     curr_dir.append(dirFuncObj)
-    dirLocal = 4000
 
 def p_f_endclass(p):
     "f_endclass :"
+    global dirObjNum, dirObjStr
+    recNum = dirObjNum
+    recStr = dirObjStr - 3000
+
     curr_dir.pop()
+    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, 0, 0])
     curr_func.pop()
+
+    dirObjNum = 0
+    dirObjStr = 3000
 
 def p_funciones(p):
     '''funciones : funciones funcion
@@ -200,7 +290,7 @@ def p_f_startfunc(p):
 def p_f_nothing(p):
     "f_nothing :"
     global curr_tipo
-    curr_tipo = 2
+    curr_tipo = 6
 
 def p_f_tipofunc(p):
     "f_tipofunc :"
@@ -208,17 +298,27 @@ def p_f_tipofunc(p):
 
 def p_f_endfunc(p):
     "f_endfunc :"
-    global dirLocal, dirTemp
-    curr_dir[-1].delete_var_table(curr_func[-1])
+    global dirLocalNum, dirLocalStr, dirLocalBool, dirTempNum, dirTempStr, dirTempBool, dirTempPoint
+    # curr_dir[-1].delete_var_table(curr_func[-1])
     # CALCULAR RECURSOS
-    recursos = (dirLocal - 4000) + (dirTemp - 7000)
-    curr_dir[-1].add_resources(curr_func[-1], recursos)
+    recNum = dirLocalNum - 5000 + (dirTempNum - 10000)
+    recStr = dirLocalStr - 8000 + (dirTempStr - 13000)
+    recBool = dirLocalBool - 9000 + (dirTempBool - 14000)
+    recPoint = dirTempPoint - 15000
+
+    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPoint])
     curr_func.pop()
 
     cuadruplos.add("ENDFUNC", -1, -1, -1) # cuadruplo para regresar al programa principal
 
-    dirLocal = 4000 # reinicia direcciones locales y temporales
-    dirTemp = 7000
+    dirLocalNum = 5000
+    dirLocalStr = 8000
+    dirLocalBool = 9000
+
+    dirTempNum = 10000
+    dirTempStr = 13000
+    dirTempBool = 14000
+    dirTempPoint = 15000
 
 def p_vars(p):
     '''vars : vars DEF tipo dimension ':' lista_id ';'
@@ -229,7 +329,7 @@ def p_f_varsobj(p):
     "f_varsobj :"
     global curr_tipo, dimension, found_error
     tipo, mem = curr_dir[0].get_func(p[-1])
-    if tipo == 3:
+    if tipo == 5: # objeto
         curr_tipo = p[-1]
     else:
         print("UNDECLARED OBJECT, line ", lexer.lineno)
@@ -237,8 +337,22 @@ def p_f_varsobj(p):
     dimension = None
 
 def p_cvars(p):
-    '''cvars : cvars DEF tipo dimension ':' lista_id ';'
+    '''cvars : cvars DEF tipo dimension ':' lista_id_in_obj ';'
              | empty'''
+
+def p_lista_id_in_obj(p): 
+    '''lista_id_in_obj : ID f_vars_in_obj
+                       | lista_id_in_obj ',' ID f_vars_in_obj'''
+
+def p_f_vars_in_obj(p): # variables de un objeto
+    "f_vars_in_obj :"
+    global found_error
+    if not mem_available("objeto", curr_tipo):
+        print("ERROR: memoria llena")
+        found_error = True
+    else:
+        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirObjNum)
+        add_memory("objeto", curr_tipo, 1)
 
 def p_lista_id(p): 
     '''lista_id : ID f_vars
@@ -246,29 +360,35 @@ def p_lista_id(p):
                 
 def p_f_vars(p):
     "f_vars :"
-    global dimension, dirGlobal, dirLocal, found_error
+    global dimension, found_error
     if len(curr_func) == 1: # esta en variables globales
-        if dirGlobal == 4000:
+        if not mem_available("global", curr_tipo):
             print("MEMORIA GLOBAL LLENA")
             found_error = True
 
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobal)
+        if curr_tipo == 0:
+            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobalNum)
+        elif curr_tipo == 1:
+            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobalStr)
         
         if dimension is None:
-            dirGlobal += 1
+            add_memory("global", curr_tipo, 1)
         else:
-            dirGlobal += dimension.get_size()
+            add_memory("global", curr_tipo, dimension.get_size())
     else:
-        if dirLocal == 7000:
+        if not mem_available("local", curr_tipo):
             print("MEMORIA LOCAL LLENA")
             found_error = True
 
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
+        if curr_tipo == 0:
+            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalNum)
+        elif curr_tipo == 1:
+            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalStr)
 
         if dimension is None:
-            dirLocal += 1
+            add_memory("local", curr_tipo, 1)
         else:
-            dirLocal += dimension.get_size()
+            add_memory("local", curr_tipo, dimension.get_size())
 
     dimension = None
 
@@ -278,23 +398,27 @@ def p_lista_id_obj(p):
 
 def p_f_vars_obj(p):
     "f_vars_obj :"
-    global dirGlobal, dirLocal, found_error, dimension
+    global found_error, dimension
     obj_size = curr_dir[0].get_resources(curr_tipo)
 
     if len(curr_func) == 1: # esta en variables globales
-        if dirGlobal == 4000:
+        if not mem_available("global", 0) or not mem_available("global", 1):
             print("MEMORIA GLOBAL LLENA")
             found_error = True
 
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobal)
-        dirGlobal += obj_size
+        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, [dirGlobalNum, dirGlobalStr])
+
+        add_memory("global", 0, obj_size[0])
+        add_memory("global", 1, obj_size[1])
     else:
-        if dirLocal == 7000:
+        if not mem_available("local", 0) or not mem_available("local", 1):
             print("MEMORIA LOCAL LLENA")
             found_error = True
 
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
-        dirLocal += obj_size
+        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, [dirLocalNum, dirLocalStr])
+        
+        add_memory("local", 0, obj_size[0])
+        add_memory("local", 1, obj_size[1])
 
     dimension = None
 
@@ -305,26 +429,32 @@ def p_dimension(p):
 
 def p_f_dim1(p):
     "f_dim1 :"
-    global dim1, dirConst, dimension
+    global dim1, dimension
     dim1 = p[-1]
 
     if not constantes.check_var(p[-1]):
-        constantes.add_var(p[-1], 0, None, dirConst)
-        dirConst += 1
+        constantes.add_var(p[-1], 0, None, dirConstNum)
+        const_mem = dirConstNum
+        add_memory("constantes", 0, 1)
+    else:
+        const_tipo, const_mem = constantes.get_var(p[-1])
 
     dimension = DimStructure()
-    dimension.add_upper_lim(dim1)
+    dimension.add_upper_lim(const_mem)
 
 def p_f_dim2(p):
     "f_dim2 :"
-    global dim2, dirConst, dimension
+    global dim2, dimension
     dim2 = p[-1]
 
     if not constantes.check_var(p[-1]):
-        constantes.add_var(p[-1], 0, None, dirConst)
-        dirConst += 1
+        constantes.add_var(p[-1], 0, None, dirConstNum)
+        const_mem = dirConstNum
+        add_memory("constantes", 0, 1)
+    else:
+        const_tipo, const_mem = constantes.get_var(p[-1])
 
-    dimension.add_upper_lim(dim2)
+    dimension.add_upper_lim(const_mem)
 
 def p_f_onedim(p):
     "f_onedim :"
@@ -359,9 +489,16 @@ def p_pparams(p):
 
 def p_f_param(p):
     "f_param :"
-    global dirLocal
-    curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocal)
-    dirLocal += 1
+    if not mem_available("local", curr_tipo):
+        print("MEMORIA LOCAL LLENA")
+        found_error = True
+    
+    if curr_tipo == 0:
+        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalNum)
+    elif curr_tipo == 1:
+        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalStr)
+    
+    add_memory("local", curr_tipo, 1)
     curr_dir[-1].add_param(curr_func[-1], curr_tipo)
 
 def p_estatutos(p):
@@ -400,13 +537,22 @@ def p_f_verify_func(p):
         param_list = curr_dir[-1].get_params(p[-1])
         cuadruplos.add("ERA", recursos, -1, -1)
         param_count = 0
+        curr_func.append(p[-1])
 
 def p_f_verify_func_composite(p):
     "f_verify_func_composite :"
     global found_error, param_list, param_count
-    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+    
+    if len(curr_func) > 1: # esta en una función, busca objeto localmente
+        obj_type, obj_mem = curr_dir[0].get_vars_from_obj(curr_func[-1]).get_var(check_obj)
+    else:
+        obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+    
+    curr_func.append(check_obj)
     obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
+
     f_type, f_start = obj_funcs.get_func(p[-1])
+    curr_func.append(p[-1])
 
     if f_type == -1:
         print("UNDECLARED FUNCTION, line", lexer.lineno)
@@ -437,6 +583,7 @@ def p_f_arg(p):
 
     if param_count > len(param_list):
         print("ERROR: Too many arguments, line", lexer.lineno)
+        found_error = True
     else:
         if arg_type == param_list[param_count-1]:
             cuadruplos.add("PARAMETER", arg, param_count, -1)
@@ -477,8 +624,8 @@ def p_f_verify_type(p):
     base_dir = var_mem
     
     if var_type == -1:
-        if len(curr_func) > 1: # la estaba buscando localmente, ahora buscar global
-            var_type, var_mem = curr_dir[0].get_var(curr_func[0], p[-1])
+        if len(curr_func) > 1: # la estaba buscando localmente en una función, ahora buscar en otro scope
+            var_type, var_mem = curr_dir[0].get_var(curr_func[-2], p[-1])
              
         if var_type == -1:
             print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno) # local
@@ -498,8 +645,12 @@ def p_f_verify_type_composite(p):
     obj_vars = curr_dir[0].get_vars_from_obj(obj_type) # trae la tabla de variables de ese objeto
     var_type, var_mem = obj_vars.get_var(p[-1]) # trae el tipo y la memoria del atributo
 
-    # la direccion real de la memoria depende de la memoria base del objeto, como si los atributos estuvieran en un arreglo
-    real_mem = obj_mem + (var_mem - 4000)
+    # la direccion real del atributo depende de la memoria base del objeto
+    # en el objeto se guarda una especia de offset para cada atributo
+    if var_type == 0:
+        real_mem = obj_mem[0] + (var_mem)
+    elif var_type == 1:
+        real_mem = obj_mem[1] + (var_mem - 3000)
 
     if var_type == -1:
         print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno)
@@ -530,20 +681,19 @@ def p_f_start_array(p):
 
 def p_f_index(p):
     "f_index :"
-    global dirTemp, dirConst
     lim_sup, m = has_dim.get_node(dim)
 
     if not constantes.check_var(0):
-        constantes.add_var(0, 0, None, dirConst)
-        const_mem = dirConst
-        dirConst += 1
+        constantes.add_var(0, 0, None, dirConstNum)
+        const_mem = dirConstNum
+        add_memory("constantes", 0, 1)
     else:
         const_tipo, const_mem = constantes.get_var(0)
 
     if not constantes.check_var(lim_sup):
-        constantes.add_var(lim_mem, 0, None, dirConst)
-        lim_mem = dirConst
-        dirConst += 1
+        constantes.add_var(lim_sup, 0, None, dirConstNum)
+        lim_mem = dirConstNum
+        add_memory("constantes", 0, 1)
     else:
         const_tipo, lim_mem = constantes.get_var(lim_sup)
 
@@ -551,16 +701,16 @@ def p_f_index(p):
 
     if not has_dim.is_last_node(dim):
         aux = pilaOperandos.pop()
-        cuadruplos.add("*", aux, m, dirTemp)
-        pilaOperandos.append(dirTemp)
-        dirTemp += 1
+        cuadruplos.add("*", aux, m, dirTempNum)
+        pilaOperandos.append(dirTempNum)
+        add_memory("temp", 0, 1)
 
     if dim > 1:
         aux2 = pilaOperandos.pop()
         aux1 = pilaOperandos.pop()
-        cuadruplos.add("+", aux1, aux2, dirTemp)
-        pilaOperandos.append(dirTemp)
-        dirTemp += 1
+        cuadruplos.add("+", aux1, aux2, dirTempNum)
+        pilaOperandos.append(dirTempNum)
+        add_memory("temp", 0, 1)
 
 def p_f_next_index(p):
     "f_next_index :"
@@ -570,7 +720,7 @@ def p_f_next_index(p):
 
 def p_f_end_array(p):
     "f_end_array :"
-    global dirTemp, found_error
+    global found_error
     num_dims = has_dim.get_num_dims()
 
     if dim < num_dims:
@@ -579,11 +729,12 @@ def p_f_end_array(p):
 
     aux1 = pilaOperandos.pop()
     const_tipo, const_mem = constantes.get_var(0) # K = 0
-    cuadruplos.add("+", aux1, const_mem, dirTemp)
-    cuadruplos.add("+", dirTemp, base_dir, dirTemp+1)
-    dirTemp += 2
+    cuadruplos.add("+", aux1, const_mem, dirTempNum)
+    cuadruplos.add("+", dirTempNum, base_dir, dirTempNum+1)
+    add_memory("temp", 0, 2)
 
-    pilaOperandos.append(dirTemp-1) # APUNTADOR
+    pilaOperandos.append(dirTempNum-1) # APUNTADOR
+    pilaTipos.append(3)
     pilaOperadores.pop() # quitar fake bottom
 
 def p_expresion(p):
@@ -592,7 +743,7 @@ def p_expresion(p):
 
 def p_f_expres(p):
     "f_expres :"
-    global dirTemp, found_error
+    global found_error
     if len(pilaOperadores) > 0 and pilaOperadores[-1] in ['<>', '<', '>', '==']:
         oper = pilaOperadores.pop()
         ro = pilaOperandos.pop()
@@ -605,10 +756,10 @@ def p_f_expres(p):
         print("ERROR: Type Mismatch")
         found_error = True
     else:
-        if dirTemp == 10000:
+        if not mem_available("temp", tres):
             print("MEMORIA TEMPORAL LLENA")
-        res = dirTemp
-        dirTemp += 1
+        res = dirTempNum
+        add_memory("temp", tres, 1)
         cuadruplos.add(oper, lo, ro, res)
 
         pilaOperandos.append(res)
@@ -621,7 +772,7 @@ def p_exp(p):
 # Funcion semantica - resolver operaciones + -
 def p_f_exp(p):
     "f_exp :"
-    global dirTemp, found_error
+    global found_error
     if len(pilaOperadores) > 0 and len(pilaOperandos) > 1 and pilaOperadores[-1] in '-+':
         ro = pilaOperandos.pop()
         rt = pilaTipos.pop()
@@ -634,10 +785,10 @@ def p_f_exp(p):
             print("ERROR: Type Mismatch")
             found_error = True
         else:
-            if dirTemp == 10000:
+            if not mem_available("temp", tres):
                 print("MEMORIA TEMPORAL LLENA")
-            res = dirTemp
-            dirTemp += 1
+            res = dirTempNum
+            add_memory("temp", tres, 1)
             cuadruplos.add(oper, lo, ro, res)
 
             pilaOperandos.append(res)
@@ -650,7 +801,7 @@ def p_term(p):
 # Funcion semantica - resolver operaciones + /
 def p_f_term(p):
     "f_term :"
-    global dirTemp, found_error
+    global found_error
     if len(pilaOperadores) > 0 and len(pilaOperandos) > 1 and pilaOperadores[-1] in '*/':
         ro = pilaOperandos.pop()
         rt = pilaTipos.pop()
@@ -663,10 +814,10 @@ def p_f_term(p):
             print("ERROR: Type Mismatch")
             found_error = True
         else:
-            if dirTemp == 10000:
+            if not mem_available("temp", tres):
                 print("MEMORIA TEMPORAL LLENA")
-            res = dirTemp
-            dirTemp += 1
+            res = dirTempNum
+            add_memory("temp", 0, 1)
             cuadruplos.add(oper, lo, ro, res)
 
             pilaOperandos.append(res)
@@ -682,26 +833,55 @@ def p_fact(p):
             | var
             | NUM f_fact
             | OPTERM NUM
-            | CALL call_func'''
-    global dirConst
+            | CALL call_func f_return_val '''
+
     if p[1] == '-':
         pilaTipos.append(0)
         if not constantes.check_var(-1 * p[2]):
-            constantes.add_var(-1 * p[2], 0, None, dirConst)
-            pilaOperandos.append(dirConst)
-            dirConst += 1
+            constantes.add_var(-1 * p[2], 0, None, dirConstNum)
+            pilaOperandos.append(dirConstNum)
+            add_memory("constantes", 0, 1)
         else:
             var_tipo, var_mem = constantes.get_var(-1 * p[2])
             pilaOperandos.append(var_mem)
     elif p[1] == '+':
         pilaTipos.append(0)
         if not constantes.check_var(p[2]):
-            constantes.add_var(p[2], 0, None, dirConst)
-            pilaOperandos.append(dirConst)
-            dirConst += 1
+            constantes.add_var(p[2], 0, None, dirConstNum)
+            pilaOperandos.append(dirConstNum)
+            add_memory("constantes", 0, 1)
         else:
             var_tipo, var_mem = constantes.get_var(p[2])
             pilaOperandos.append(var_mem)
+
+def p_f_return_val(p):
+    "f_return_val :"
+    func_name = curr_func.pop()
+
+    if len(curr_func) > 1: # funcion de un objeto
+        obj_name = curr_func.pop()
+
+        if len(curr_func) > 1: # esta en una función, busca objeto localmente
+            obj_type, obj_mem = curr_dir[0].get_vars_from_obj(curr_func[-1]).get_var(obj_name)
+        else:
+            obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], obj_name) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+        
+        obj_vars = curr_dir[0].get_vars_from_obj(obj_type) # trae la tabla de variables de ese objeto
+
+        ret_type, ret_mem = obj_vars.get_return_value(func_name)
+
+        if ret_type == 0:
+            ret_mem = obj_mem[0] + (ret_mem)
+        elif ret_type == 1:
+            ret_mem = obj_mem[1] + (ret_mem - 3000)
+    else: 
+        ret_type, ret_mem = curr_dir[-1].get_return_value(curr_func[-1], func_name)
+
+    if ret_type == -1:
+        print("ERROOR, No return value, line", lexer.lineno)
+    else:
+        pilaOperandos.append(ret_mem)
+        pilaTipos.append(ret_type)
 
 def p_lparen(p):
     "lparen :"
@@ -713,13 +893,12 @@ def p_rparen(p):
 
 def p_f_fact(p):
     "f_fact :"
-    global dirConst
     pilaTipos.append(0)
 
     if not constantes.check_var(p[-1]):
-        constantes.add_var(p[-1], 0, None, dirConst)
-        pilaOperandos.append(dirConst)
-        dirConst += 1
+        constantes.add_var(p[-1], 0, None, dirConstNum)
+        pilaOperandos.append(dirConstNum)
+        add_memory("constantes", 0, 1)
     else:
         var_tipo, var_mem = constantes.get_var(p[-1])
         pilaOperandos.append(var_mem)
@@ -792,26 +971,25 @@ def p_f_for_start(p):
 
 def p_f_for_to(p):
     "f_for_to :"
-    global found_error, dirTemp
+    global found_error
 
     exp_type = pilaTipos.pop()
     exp = pilaOperandos.pop()
     if exp_type == 0:
         pilaSaltos.append(cuadruplos.get_cont()) # para el retorno
-        cuadruplos.add(">", var_ctrl, exp, dirTemp) # el for será inclusive
-        cuadruplos.add("GOTOV", dirTemp, -1, -1)
+        cuadruplos.add(">", var_ctrl, exp, dirTempBool) # el for será inclusive
+        cuadruplos.add("GOTOV", dirTempBool, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1) # GotoV
-        dirTemp += 1
+        add_memory("temp", 3, 1)
     else:
         found_error = True
         print("ERROR: Type mismatch, line", lexer.lineno)
 
 def p_f_for_end(p):
     "f_for_end :" 
-    global dirTemp
-    cuadruplos.add("+", var_ctrl, "1", dirTemp) # sumar 1 a la var de control
-    cuadruplos.add("=", dirTemp, -1, var_ctrl) # asignar el resultado a la var de control
-    dirTemp += 1
+    cuadruplos.add("+", var_ctrl, "1", dirTempNum) # sumar 1 a la var de control
+    cuadruplos.add("=", dirTempNum, -1, var_ctrl) # asignar el resultado a la var de control
+    add_memory("temp", 0, 1)
 
     fin = pilaSaltos.pop()
     retorno = pilaSaltos.pop()
@@ -821,26 +999,26 @@ def p_f_for_end(p):
 def p_to_num(p):
     '''to_num : TO_NUMBER '(' STR ')' 
               | TO_NUMBER '(' var ')' '''
-    global dirTemp, found_error
+    global found_error
     if pilaTipos[-1] == 1:
-        cuadruplos.add("CNUM", pilaOperandos.pop(), -1, dirTemp)
+        cuadruplos.add("CNUM", pilaOperandos.pop(), -1, dirTempNum)
         pilaTipos.pop()
-        pilaOperandos.append(dirTemp)
+        pilaOperandos.append(dirTempNum)
         pilaTipos.append(0)
-        dirTemp += 1
+        add_memory("temp", 0, 1)
     else:
         print("ERROR: Type Mismatch")
         found_error = True
 
 def p_to_str(p):
     '''to_str : TO_STRING '(' expresion ')' '''
-    global dirTemp, found_error
+    global found_error
     if pilaTipos[-1] == 0:
-        cuadruplos.add("CSTR", pilaOperandos.pop(), -1, dirTemp)
+        cuadruplos.add("CSTR", pilaOperandos.pop(), -1, dirTempStr)
         pilaTipos.pop()
-        pilaOperandos.append(dirTemp)
+        pilaOperandos.append(dirTempStr)
         pilaTipos.append(1)
-        dirTemp += 1
+        add_memory("temp", 1, 1)
     else:
         print("ERROR: Type Mismatch")
         found_error = True
@@ -874,7 +1052,31 @@ def p_return(p):
     f_type, f_start = curr_dir[-1].get_func(curr_func[-1])
 
     if res_type == f_type:
-        cuadruplos.add("RET", -1, -1, res)
+        if len(curr_func) > 2: # es una funcion en un objeto
+            if res_type == 0 and mem_available("objeto", res_type):
+                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirObjNum)
+                cuadruplos.add("RET", res, -1, dirObjNum) # asigna el valor de retorno a la variable creada
+                add_memory("objeto", 0, 1)
+            elif res_type == 1 and mem_available("objeto", res_type):
+                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirObjStr)
+                cuadruplos.add("RET", res, -1, dirObjStr) # asigna el valor de retorno a la variable creada
+                add_memory("objeto", 1, 1)
+            else:
+                print("ERROR: memoria llena")
+                found_error = True
+        else:
+            if res_type == 0 and mem_available("global", res_type):
+                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirGlobalNum)
+                cuadruplos.add("RET", res, -1, dirGlobalNum)
+                add_memory("global", 0, 1)
+            elif res_type == 1 and mem_available("global", res_type):
+                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirGlobalStr)
+                cuadruplos.add("RET", res, -1, dirGlobalStr)
+                add_memory("global", 1, 1)
+            else:
+                print("ERROR: memoria global llena")
+                found_error = True
+                
     else:
         print("ERROR: Type Mismatch, line", lexer.lineno)
         found_error = True

@@ -24,7 +24,8 @@ class dirFunc:
             self.dir_func[nombre] = {
                 'tipo': tipo,
                 'vars' : tablaVars(),
-                'inicio': cuadStart
+                'inicio': cuadStart,
+                'params': list()
             }
         else:
             print("Error: la funcion", str(nombre), "ya existe")
@@ -46,9 +47,9 @@ class dirFunc:
             return False
         return True
 
-    def add_resources(self, nombre, cantidad):
+    def add_resources(self, nombre, cantidades):
         if nombre in self.dir_func:
-            self.dir_func[nombre]['recursos'] = cantidad
+            self.dir_func[nombre]['recursos'] = cantidades # [Num, Str, Bool, Pt]
         else:
             print("Error: la funcion", str(nombre), "no existe")
             return False
@@ -66,11 +67,11 @@ class dirFunc:
         # regresa el tipo y la direccion de memoria
         return self.dir_func[func]['vars'].get_var(nombre) 
 
-    def add_return_value(self, func, tipo, memoria):
-        return self.dir_func[func]['vars'].add_return_value(func, tipo, memoria)
+    def add_return_value(self, func, nombre, tipo, memoria):
+        return self.dir_func[func]['vars'].add_return_value(nombre, tipo, memoria)
 
-    def get_return_value(self, func):
-        return self.dir_func[func]['vars'].get_return_value(func)
+    def get_return_value(self, func, nombre):
+        return self.dir_func[func]['vars'].get_return_value(nombre)
 
     def add_param(self, func, tipo):
         if 'params' not in self.dir_func[func]:
