@@ -28,21 +28,23 @@ class cuboSemantico:
             '<>' : 6,
             '==' : 7,
             '&' : 8,
-            'leer' : 9,
-            'escribir' : 10,
-            'regresar' : 11
+            '=' : 9
         }
 
         self.cuboSeman =  [[  # number
-                            #     +   -   *   /   >   <  <>  ==   & 
-                                [ 0,  0,  0,  0,  0,  0,  0,  0, -1], # number
-                                [-1, -1, -1, -1, -1, -1, -1, -1, -1]  # string
+                            #     +   -   *   /   >   <  <>  ==   &   =
+                                [ 0,  0,  0,  0,  0,  0,  0,  0, -1,  0], # number
+                                [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]  # string
                             ], [ # string
-                                [-1, -1, -1, -1, -1, -1,  0,  0,  1], # number
-                                [-1, -1, -1, -1, -1, -1, -1, -1, -1]  # string
+                                [-1, -1, -1, -1, -1, -1,  0,  0,  1, -1], # number
+                                [-1, -1, -1, -1, -1, -1, -1, -1, -1,  0]  # string
                             ]]
 
     def check(self, op, t1, t2):
         if t1 == 2 or t2 == 2: # uno es nothing
             return -1
+
+        if t1 == 3 or t2 == 3:
+            return 0
+            
         return self.cuboSeman[t1][t2][self.operadores[op]]

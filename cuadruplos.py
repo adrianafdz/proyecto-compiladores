@@ -6,7 +6,7 @@ class Cuadruplos():
         self.cont = 1
 
     def add(self, op, izq, der, res):
-        self.cuadruplos.append((op, izq, der, res))
+        self.cuadruplos.append((op, izq, der, int(res)))
         self.cont += 1
 
     def get_cont(self):

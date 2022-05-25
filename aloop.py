@@ -35,6 +35,7 @@ pilaOperandos = deque()
 pilaOperadores = deque()
 pilaTipos = deque()
 pilaSaltos = deque()
+pilaDim = deque()
 
 tipos = [0, 1, 2, 3, 4, 5, 6] # number, string, bool, pointer, objeto, nothing
 curr_tipo = 6
@@ -46,6 +47,7 @@ var_ctrl_type = None
 has_dim = False
 dim = 1
 base_dir = 0
+is_class = False
 
 curr_dir = deque()
 curr_func = deque()
@@ -231,8 +233,8 @@ def p_f_end(p):
     recPoint = dirTempPoint - 15000
 
     curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPoint])
-    print(curr_dir[-1])
-    #print(constantes)
+    # print(curr_dir[-1])
+    # print(constantes)
     curr_dir[-1].delete_dir()
     curr_func.pop()
 
@@ -246,10 +248,11 @@ def p_clase(p):
 
 def p_f_startclass(p):
     "f_startclass :"
-    global dirFuncObj
+    global dirFuncObj, is_class
     curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), 5)
     curr_func.append(p[-1])
     dirFuncObj = curr_dir[-1].create_dir_for_obj(curr_func[-1])
+    is_class = True
 
 def p_f_clasepadre(p):
     "f_clasepadre :"
@@ -259,7 +262,9 @@ def p_f_clasepadre(p):
 
 def p_f_cvars(p):
     "f_cvars :"
+    global is_class
     curr_dir.append(dirFuncObj)
+    is_class = False
 
 def p_f_endclass(p):
     "f_endclass :"
@@ -299,7 +304,7 @@ def p_f_tipofunc(p):
 def p_f_endfunc(p):
     "f_endfunc :"
     global dirLocalNum, dirLocalStr, dirLocalBool, dirTempNum, dirTempStr, dirTempBool, dirTempPoint
-    # curr_dir[-1].delete_var_table(curr_func[-1])
+    curr_dir[-1].delete_var_table(curr_func[-1])
     # CALCULAR RECURSOS
     recNum = dirLocalNum - 5000 + (dirTempNum - 10000)
     recStr = dirLocalStr - 8000 + (dirTempStr - 13000)
@@ -329,6 +334,7 @@ def p_f_varsobj(p):
     "f_varsobj :"
     global curr_tipo, dimension, found_error
     tipo, mem = curr_dir[0].get_func(p[-1])
+    
     if tipo == 5: # objeto
         curr_tipo = p[-1]
     else:
@@ -337,22 +343,8 @@ def p_f_varsobj(p):
     dimension = None
 
 def p_cvars(p):
-    '''cvars : cvars DEF tipo dimension ':' lista_id_in_obj ';'
+    '''cvars : cvars DEF tipo dimension ':' lista_id ';'
              | empty'''
-
-def p_lista_id_in_obj(p): 
-    '''lista_id_in_obj : ID f_vars_in_obj
-                       | lista_id_in_obj ',' ID f_vars_in_obj'''
-
-def p_f_vars_in_obj(p): # variables de un objeto
-    "f_vars_in_obj :"
-    global found_error
-    if not mem_available("objeto", curr_tipo):
-        print("ERROR: memoria llena")
-        found_error = True
-    else:
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirObjNum)
-        add_memory("objeto", curr_tipo, 1)
 
 def p_lista_id(p): 
     '''lista_id : ID f_vars
@@ -361,7 +353,22 @@ def p_lista_id(p):
 def p_f_vars(p):
     "f_vars :"
     global dimension, found_error
-    if len(curr_func) == 1: # esta en variables globales
+    if is_class:
+        if not mem_available("objeto", curr_tipo):
+            print("MEMORIA GLOBAL LLENA")
+            found_error = True
+
+        if curr_tipo == 0:
+            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirObjNum)
+        elif curr_tipo == 1:
+            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirObjStr)
+
+        if dimension is None:
+            add_memory("objeto", curr_tipo, 1)
+        else:
+            add_memory("objeto", curr_tipo, dimension.get_size())
+
+    elif len(curr_func) == 1: # esta en variables globales
         if not mem_available("global", curr_tipo):
             print("MEMORIA GLOBAL LLENA")
             found_error = True
@@ -432,29 +439,15 @@ def p_f_dim1(p):
     global dim1, dimension
     dim1 = p[-1]
 
-    if not constantes.check_var(p[-1]):
-        constantes.add_var(p[-1], 0, None, dirConstNum)
-        const_mem = dirConstNum
-        add_memory("constantes", 0, 1)
-    else:
-        const_tipo, const_mem = constantes.get_var(p[-1])
-
     dimension = DimStructure()
-    dimension.add_upper_lim(const_mem)
+    dimension.add_upper_lim(dim1)
 
 def p_f_dim2(p):
     "f_dim2 :"
     global dim2, dimension
     dim2 = p[-1]
 
-    if not constantes.check_var(p[-1]):
-        constantes.add_var(p[-1], 0, None, dirConstNum)
-        const_mem = dirConstNum
-        add_memory("constantes", 0, 1)
-    else:
-        const_tipo, const_mem = constantes.get_var(p[-1])
-
-    dimension.add_upper_lim(const_mem)
+    dimension.add_upper_lim(dim2)
 
 def p_f_onedim(p):
     "f_onedim :"
@@ -600,7 +593,10 @@ def p_f_end_args(p):
 
 def p_asignacion(p):
     '''asignacion : var '=' f_oper expresion ';' '''
-    cuadruplos.add(pilaOperadores.pop(), pilaOperandos.pop(), -1, pilaOperandos.pop())
+    if cubo.check("=", pilaTipos.pop(), pilaTipos.pop()) != -1:
+        cuadruplos.add(pilaOperadores.pop(), pilaOperandos.pop(), -1, pilaOperandos.pop())
+    else:
+        print("ERROR: type mismatch, line", lexer.lineno)
 
 def p_var(p):
     '''var : ID f_varobj ':' ID f_verify_type_composite indexacion
@@ -640,9 +636,10 @@ def p_f_verify_type(p):
 def p_f_verify_type_composite(p):
     "f_verify_type_composite :"
     global found_error
-    obj_type, obj_mem = curr_dir[0].get_var(curr_func[-1], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
-    
+    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+
     obj_vars = curr_dir[0].get_vars_from_obj(obj_type) # trae la tabla de variables de ese objeto
+
     var_type, var_mem = obj_vars.get_var(p[-1]) # trae el tipo y la memoria del atributo
 
     # la direccion real del atributo depende de la memoria base del objeto
@@ -673,15 +670,15 @@ def p_f_start_array(p):
         print("Error: variable not indexable, line", lexer.lineno)
         found_error = True
     else:
-        print("base", base_dir)
         arr = pilaOperandos.pop()
         arr_type = pilaTipos.pop()
         dim = 1
         pilaOperadores.append('(') # fake bottom
+        pilaDim.append((has_dim, dim, base_dir))
 
 def p_f_index(p):
     "f_index :"
-    lim_sup, m = has_dim.get_node(dim)
+    lim_sup, m = pilaDim[-1][0].get_node(dim)
 
     if not constantes.check_var(0):
         constantes.add_var(0, 0, None, dirConstNum)
@@ -699,47 +696,77 @@ def p_f_index(p):
 
     cuadruplos.add("VERIFY", pilaOperandos[-1], const_mem, lim_mem)
 
-    if not has_dim.is_last_node(dim):
+    if not pilaDim[-1][0].is_last_node(pilaDim[-1][1]):
         aux = pilaOperandos.pop()
-        cuadruplos.add("*", aux, m, dirTempNum)
+        pilaTipos.pop()
+
+        if not constantes.check_var(m):
+            constantes.add_var(m, 0, None, dirConstNum)
+            m_mem = dirConstNum
+            add_memory("constantes", 0, 1)
+        else:
+            const_tipo, m_mem = constantes.get_var(m)
+
+        cuadruplos.add("*", aux, m_mem, dirTempNum)
         pilaOperandos.append(dirTempNum)
+        pilaTipos.append(0)
         add_memory("temp", 0, 1)
 
-    if dim > 1:
+    if pilaDim[-1][1] > 1:
         aux2 = pilaOperandos.pop()
+        pilaTipos.pop()
         aux1 = pilaOperandos.pop()
+        pilaTipos.pop()
         cuadruplos.add("+", aux1, aux2, dirTempNum)
         pilaOperandos.append(dirTempNum)
+        pilaTipos.append(0)
         add_memory("temp", 0, 1)
 
 def p_f_next_index(p):
     "f_next_index :"
     global dim
     dim += 1
-    # update dim ?
+    top_arr, top_dim, base = pilaDim.pop()
+    pilaDim.append((top_arr, top_dim + 1, base))
 
 def p_f_end_array(p):
     "f_end_array :"
     global found_error
-    num_dims = has_dim.get_num_dims()
+    num_dims = pilaDim[-1][0].get_num_dims()
 
-    if dim < num_dims:
+    if pilaDim[-1][1] < num_dims:
         print("ERROR: missing indexes, line", lexer.lineno)
         found_error = True
 
     aux1 = pilaOperandos.pop()
+    pilaTipos.pop()
     const_tipo, const_mem = constantes.get_var(0) # K = 0
     cuadruplos.add("+", aux1, const_mem, dirTempNum)
-    cuadruplos.add("+", dirTempNum, base_dir, dirTempNum+1)
+
+    if not constantes.check_var(pilaDim[-1][2]):
+        constantes.add_var(pilaDim[-1][2], 0, None, dirConstNum) # base
+        base_mem = dirConstNum
+        add_memory("constantes", 0, 1)
+    else:
+        const_tipo, base_mem = constantes.get_var(pilaDim[-1][2])
+
+    cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1)
     add_memory("temp", 0, 2)
 
     pilaOperandos.append(dirTempNum-1) # APUNTADOR
     pilaTipos.append(3)
     pilaOperadores.pop() # quitar fake bottom
+    pilaDim.pop()
 
 def p_expresion(p):
     '''expresion : exp
-                 | expresion COMP f_oper exp f_expres'''
+                 | expresion COMP f_oper exp f_expres
+                 | STR f_string_expr '''
+
+def p_f_string_expr(p):
+    "f_string_expr :"
+    pilaOperandos.append(p[-1])
+    pilaTipos.append(1)
 
 def p_f_expres(p):
     "f_expres :"
@@ -1035,13 +1062,18 @@ def p_write_list(p):
                   | write_listp'''
 
 def p_write_listp(p):
-    '''write_listp : STR 
+    '''write_listp : STR f_string
                    | var 
-                   | CALL to_str'''
-    if len(p) == 1:
-        pilaOperandos.append(p[1])
-    
-    cuadruplos.add("PRINT", -1, -1, pilaOperandos.pop())
+                   | CALL to_str'''    
+    if pilaTipos.pop() == 1:
+        cuadruplos.add("PRINT", -1, -1, pilaOperandos.pop())
+    else:
+        print("type mismatch")
+
+def p_f_string(p):
+    "f_string :"
+    pilaOperandos.append(p[-1])
+    pilaTipos.append(1)
 
 def p_return(p):
     '''return : RET '(' expresion ')' '''
@@ -1056,10 +1088,12 @@ def p_return(p):
             if res_type == 0 and mem_available("objeto", res_type):
                 curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirObjNum)
                 cuadruplos.add("RET", res, -1, dirObjNum) # asigna el valor de retorno a la variable creada
+                
                 add_memory("objeto", 0, 1)
             elif res_type == 1 and mem_available("objeto", res_type):
                 curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirObjStr)
                 cuadruplos.add("RET", res, -1, dirObjStr) # asigna el valor de retorno a la variable creada
+                
                 add_memory("objeto", 1, 1)
             else:
                 print("ERROR: memoria llena")
@@ -1068,10 +1102,12 @@ def p_return(p):
             if res_type == 0 and mem_available("global", res_type):
                 curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirGlobalNum)
                 cuadruplos.add("RET", res, -1, dirGlobalNum)
+                
                 add_memory("global", 0, 1)
             elif res_type == 1 and mem_available("global", res_type):
                 curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirGlobalStr)
                 cuadruplos.add("RET", res, -1, dirGlobalStr)
+                
                 add_memory("global", 1, 1)
             else:
                 print("ERROR: memoria global llena")
