@@ -128,7 +128,10 @@ class dirFunc:
             self.dir_func[hijo] = {
                 'tipo': p['tipo'],
                 'vars': tablaVars(p['vars'].tabla_vars),
-                'funcs': funcs
+                'funcs': funcs,
+                'inicio': p['inicio'],
+                'params': p['params'].copy(),
+                'recursos': p['recursos'].copy()
             }
 
             return True

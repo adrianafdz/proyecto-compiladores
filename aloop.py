@@ -118,14 +118,14 @@ def add_memory(scope, tipo, cant):
             dirTempPoint += cant
     elif scope == 'constantes':
         if tipo == 0:
-            dirConstNum += 1
+            dirConstNum += cant
         elif tipo == 1:
-            dirConstStr += 1
+            dirConstStr += cant
     elif scope == 'objeto':
         if tipo == 0:
-            dirObjNum += 1
+            dirObjNum += cant
         elif tipo == 1:
-            dirObjStr += 1
+            dirObjStr += cant
 
 ####################################################
 # LEX (scanner)
@@ -233,7 +233,7 @@ def p_f_end(p):
     recPoint = dirTempPoint - 15000
 
     curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPoint])
-    # print(curr_dir[-1])
+    print(curr_dir[-1])
     # print(constantes)
     curr_dir[-1].delete_dir()
     curr_func.pop()
@@ -258,7 +258,10 @@ def p_f_clasepadre(p):
     "f_clasepadre :"
     global dirFuncObj
     curr_dir[-1].copy_class_to(p[-1], curr_func[-1])
+    rec = curr_dir[-1].get_resources(curr_func[-1])
     dirFuncObj = curr_dir[-1].get_dir_from_obj(curr_func[-1])
+    add_memory("objeto", 0, rec[0])
+    add_memory("objeto", 1, rec[1])
 
 def p_f_cvars(p):
     "f_cvars :"

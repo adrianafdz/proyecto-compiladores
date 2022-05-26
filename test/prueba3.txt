@@ -4,26 +4,16 @@ type objeto {
     def number : m, o;
 
     func f1(): number {
-        def number : d;
-        d = 5;
-        o = 3;
-        call ret(o);
+        def number : d, c;
+        call ret(d);
     }
 }
 
-def number : r, x;
-def objeto: y;
-
-func f2(): number {
-    def number : d;
-    d = y:o;
-    d = r;
-    call ret(x);
+type objeto2: objeto {
+    def number : x;
 }
 
 main() {
-    x = 5;
-    x = call y:f1();
 }
 
 end;
