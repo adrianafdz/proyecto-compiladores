@@ -7,7 +7,10 @@
 #   Tipo de datos:
 #   - 0: number
 #   - 1: string
-#   - 2: nothing
+#   - 2: bool
+#   - 3: pointer num
+#   - 4: pointer str
+#   - 7: nothing
 #   - -1: error
 #
 #   Tipo de error:
@@ -33,18 +36,15 @@ class cuboSemantico:
 
         self.cuboSeman =  [[  # number
                             #     +   -   *   /   >   <  <>  ==   &   =
-                                [ 0,  0,  0,  0,  0,  0,  0,  0, -1,  0], # number
+                                [ 0,  0,  0,  0,  2,  2,  2,  2, -1,  0], # number
                                 [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]  # string
                             ], [ # string
                                 [-1, -1, -1, -1, -1, -1,  0,  0,  1, -1], # number
-                                [-1, -1, -1, -1, -1, -1, -1, -1, -1,  0]  # string
+                                [-1, -1, -1, -1,  2,  2,  2,  2, -1,  0]  # string
                             ]]
 
     def check(self, op, t1, t2):
-        if t1 == 2 or t2 == 2: # uno es nothing
+        if t1 == 7 or t2 == 7 or t1 == 2 or t2 == 2: # uno es nothing o bool, no se pueden hacer operaciones
             return -1
-
-        if t1 == 3 or t2 == 3:
-            return 0
             
         return self.cuboSeman[t1][t2][self.operadores[op]]

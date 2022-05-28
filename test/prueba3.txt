@@ -2,18 +2,21 @@ program prueba3;
 
 type objeto {
     def number : m, o;
+    def string : s;
 
-    func f1(): number {
-        def number : d, c;
-        call ret(d);
+    func f1(): string {
+        def number : d;
+        def string : st;
+        o = d;
+        call ret(st);
     }
 }
 
-type objeto2: objeto {
-    def number : x;
-}
+def number : n, p;
+def objeto : o;
 
 main() {
+    p = call o:f1();
 }
 
 end;

@@ -2,20 +2,16 @@ program pruebafor;
 
 def number : x, y, z;
 
-func f1() : number {
-    def number : d;
-    d = 3 * 8;
-}
-
-func f2() : number {
-    def number : s;
-    s = 4 / 5;
-}
-
 main() {
     x = 1;
     y = 4;
     z = 5;
+
+    if ( x > 2 + 3 ) then {
+        x = 2;
+    } else {
+        x = 3;
+    }
 
     for x + 1 to y * 3 {
         z = 3*2+1;

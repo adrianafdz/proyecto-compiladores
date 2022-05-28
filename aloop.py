@@ -11,20 +11,19 @@ found_error = False
 empty_file = True
 
 dirGlobalNum = 0 # 0 - 2999
-dirGlobalStr = 3000 # 3000 - 3999
-# dirGlobalBool = 4000 # 4000 - 4999
+dirGlobalStr = 3000 # 3000 - 4999
 
 dirLocalNum = 5000 # 5000 - 7999
-dirLocalStr = 8000 # 8000 - 8999
-dirLocalBool = 9000 # 9000 - 9999
+dirLocalStr = 8000 # 8000 - 9999
 
 dirTempNum = 10000 # 10000 - 12999
 dirTempStr = 13000 # 13000 - 13999
 dirTempBool = 14000 # 14000 - 14999
-dirTempPoint = 15000 # 15000 - 15999
+dirTempPointNum = 15000 # 15000 - 15999
+dirTempPointStr = 16000 # 16000 - 16999
 
-dirConstNum = 16000 # 16000 - 20999
-dirConstStr = 21000 # 21000 - 25999
+dirConstNum = 17000 # 17000 - 21999
+dirConstStr = 22000 # 22000 - 26999
 
 dirObjNum = 0 # 0 - 2999
 dirObjStr = 3000 # 3000 - 4999
@@ -37,8 +36,8 @@ pilaTipos = deque()
 pilaSaltos = deque()
 pilaDim = deque()
 
-tipos = [0, 1, 2, 3, 4, 5, 6] # number, string, bool, pointer, objeto, nothing
-curr_tipo = 6
+tipos = [0, 1, 2, 3, 4, 5, 6, 7] # number, string, bool, pointernum, pointerstr, objeto, nothing
+curr_tipo = 7
 dimension = None
 dim1 = None
 dim2 = None
@@ -64,28 +63,28 @@ def mem_available(scope, tipo):
         if tipo == 0: # number
             return dirGlobalNum <= 2999
         elif tipo == 1: # string
-            return dirGlobalStr <= 3999
+            return dirGlobalStr <= 4999
     elif scope == 'local':
         if tipo == 0: # number
             return dirLocalNum <= 7999
         elif tipo == 1: # string
-            return dirLocalStr <= 8999
-        elif tipo == 3: # bool
-            return dirLocalBool <= 9999
+            return dirLocalStr <= 9999
     elif scope == 'temp':
         if tipo == 0: # number
             return dirTempNum <= 12999
         elif tipo == 1: # string
             return dirTempStr <= 13999
-        elif tipo == 3: # bool
+        elif tipo == 2: # bool
             return dirTempBool <= 14999
-        elif tipo == 4: # point
-            return dirTempBool <= 15999
+        elif tipo == 3: # point num
+            return dirTempPointNum <= 15999
+        elif tipo == 4: # point str
+            return dirTempPointNum <= 16999
     elif scope == 'constantes':
         if tipo == 0:
-            return dirConstNum <= 20999
+            return dirConstNum <= 21999
         elif tipo == 1:
-            return dirConstStr <= 25999
+            return dirConstStr <= 26999
     elif scope == 'objeto':
         if tipo == 0:
             return dirObjNum <= 2999
@@ -94,7 +93,7 @@ def mem_available(scope, tipo):
     return False
 
 def add_memory(scope, tipo, cant):
-    global dirGlobalNum, dirGlobalStr, dirLocalNum, dirLocalStr, dirLocalBool, dirTempNum, dirTempStr, dirTempBool, dirTempPoint, dirConstNum, dirConstStr, dirObjNum, dirObjStr
+    global dirGlobalNum, dirGlobalStr, dirLocalNum, dirLocalStr, dirTempNum, dirTempStr, dirTempBool, dirTempPointNum, dirTempPointStr, dirConstNum, dirConstStr, dirObjNum, dirObjStr
     if scope == 'global':
         if tipo == 0: # number
             dirGlobalNum += cant
@@ -105,8 +104,6 @@ def add_memory(scope, tipo, cant):
             dirLocalNum += cant
         elif tipo == 1: # string
             dirLocalStr += cant
-        elif tipo == 2: # bool
-            dirLocalBool += cant
     elif scope == 'temp':
         if tipo == 0: # number
             dirTempNum += cant
@@ -115,7 +112,9 @@ def add_memory(scope, tipo, cant):
         elif tipo == 2: # bool
             dirTempBool += cant
         elif tipo == 3: # point
-            dirTempPoint += cant
+            dirTempPointNum += cant
+        elif tipo == 4: # point
+            dirTempPointStr += cant
     elif scope == 'constantes':
         if tipo == 0:
             dirConstNum += cant
@@ -230,10 +229,11 @@ def p_f_end(p):
     recNum = dirGlobalNum + (dirTempNum - 10000)
     recStr = dirGlobalStr - 3000 + (dirTempStr - 13000)
     recBool = dirTempBool - 14000
-    recPoint = dirTempPoint - 15000
+    recPointNum = dirTempPointNum - 15000
+    recPointStr = dirTempPointStr - 16000
 
-    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPoint])
-    print(curr_dir[-1])
+    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPointNum, recPointStr])
+    # print(curr_dir[-1])
     # print(constantes)
     curr_dir[-1].delete_dir()
     curr_func.pop()
@@ -298,7 +298,7 @@ def p_f_startfunc(p):
 def p_f_nothing(p):
     "f_nothing :"
     global curr_tipo
-    curr_tipo = 6
+    curr_tipo = 7
 
 def p_f_tipofunc(p):
     "f_tipofunc :"
@@ -306,27 +306,28 @@ def p_f_tipofunc(p):
 
 def p_f_endfunc(p):
     "f_endfunc :"
-    global dirLocalNum, dirLocalStr, dirLocalBool, dirTempNum, dirTempStr, dirTempBool, dirTempPoint
+    global dirLocalNum, dirLocalStr, dirTempNum, dirTempStr, dirTempBool, dirTempPointNum, dirTempPointStr
     curr_dir[-1].delete_var_table(curr_func[-1])
     # CALCULAR RECURSOS
     recNum = dirLocalNum - 5000 + (dirTempNum - 10000)
     recStr = dirLocalStr - 8000 + (dirTempStr - 13000)
-    recBool = dirLocalBool - 9000 + (dirTempBool - 14000)
-    recPoint = dirTempPoint - 15000
+    recBool = 0
+    recPointNum = dirTempPointNum - 15000
+    recPointStr = dirTempPointStr - 16000
 
-    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPoint])
+    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPointNum, recPointStr])
     curr_func.pop()
 
     cuadruplos.add("ENDFUNC", -1, -1, -1) # cuadruplo para regresar al programa principal
 
     dirLocalNum = 5000
     dirLocalStr = 8000
-    dirLocalBool = 9000
 
     dirTempNum = 10000
     dirTempStr = 13000
     dirTempBool = 14000
-    dirTempPoint = 15000
+    dirTempPointNum = 15000 
+    dirTempPointStr = 16000
 
 def p_vars(p):
     '''vars : vars DEF tipo dimension ':' lista_id ';'
@@ -528,10 +529,10 @@ def p_f_verify_func(p):
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
-        cuadruplos.add("GOSUB", -1, -1, f_start)
+        cuadruplos.add("GOSUB", p[-1], -1, -1)
         recursos = curr_dir[-1].get_resources(p[-1])
         param_list = curr_dir[-1].get_params(p[-1])
-        cuadruplos.add("ERA", recursos, -1, -1)
+        cuadruplos.add("ERA", p[-1], -1, -1)
         param_count = 0
         curr_func.append(p[-1])
 
@@ -554,10 +555,11 @@ def p_f_verify_func_composite(p):
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
-        cuadruplos.add("GOSUB", -1, -1, f_start)
+        cuadruplos.add("GOSUB", p[-1], obj_type, -1)
         recursos = obj_funcs.get_resources(p[-1])
         param_list = obj_funcs.get_params(p[-1])
-        cuadruplos.add("ERA", recursos, -1, -1)
+        cuadruplos.add("ERA", p[-1], obj_type, -1)
+        cuadruplos.add("OBJREF", obj_mem[0], obj_mem[1], -1) # manda una referencia de la dirección del objeto por si se modifica
         param_count = 0
 
 def p_args(p):
@@ -623,15 +625,33 @@ def p_f_verify_type(p):
     base_dir = var_mem
     
     if var_type == -1:
-        if len(curr_func) > 1: # la estaba buscando localmente en una función, ahora buscar en otro scope
+        if len(curr_func) > 1: # la estaba buscando localmente en una función, ahora buscar en otro scope (global o en el objeto)
             var_type, var_mem = curr_dir[0].get_var(curr_func[-2], p[-1])
              
         if var_type == -1:
             print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno) # local
             found_error = True
         else:
-            pilaOperandos.append(var_mem)
-            pilaTipos.append(var_type)
+            if len(curr_func) > 2: # significa que está en un método de un objeto y está accesando a uno de sus atributos
+                cuadruplos.add("SUMREF", var_mem, -1, dirTempNum) # obtener valor numerico de la direccion sumando la direccion base del objeto más la dirección relativa del atributo (var_mem)
+
+                if var_type == 0:
+                    cuadruplos.add("=", dirTempNum, -1, dirTempPointNum) # asignarle la dirección al apuntador
+                    pilaOperandos.append(dirTempPointNum)
+                    pilaTipos.append(3)
+                    add_memory("temp", 3, 1)
+
+                elif var_type == 1:
+                    cuadruplos.add("=", dirTempNum, -1, dirTempPointStr) # asignarle la dirección al apuntador
+                    pilaOperandos.append(dirTempPointStr)
+                    pilaTipos.append(4)
+                    add_memory("temp", 4, 1)
+
+                add_memory("temp", 0, 1)
+
+            else:
+                pilaOperandos.append(var_mem)
+                pilaTipos.append(var_type)
     else:
         pilaOperandos.append(var_mem)
         pilaTipos.append(var_type)
@@ -753,11 +773,22 @@ def p_f_end_array(p):
     else:
         const_tipo, base_mem = constantes.get_var(pilaDim[-1][2])
 
-    cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1)
-    add_memory("temp", 0, 2)
+    cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1) # contiene el valor numerico de la direccion
 
-    pilaOperandos.append(dirTempNum-1) # APUNTADOR
-    pilaTipos.append(3)
+    if curr_tipo == 0:
+        cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointNum) # asigna la direccion al apuntador
+        add_memory("temp", 0, 2)
+        add_memory("temp", 3, 1)
+        pilaOperandos.append(dirTempPointNum)
+        pilaTipos.append(3)
+
+    elif curr_tipo == 1:
+        cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointStr) # asigna la direccion al apuntador
+        add_memory("temp", 0, 2)
+        add_memory("temp", 4, 1)
+        pilaOperandos.append(dirTempPointStr)
+        pilaTipos.append(4)
+
     pilaOperadores.pop() # quitar fake bottom
     pilaDim.pop()
 
@@ -788,7 +819,7 @@ def p_f_expres(p):
     else:
         if not mem_available("temp", tres):
             print("MEMORIA TEMPORAL LLENA")
-        res = dirTempNum
+        res = dirTempBool
         add_memory("temp", tres, 1)
         cuadruplos.add(oper, lo, ro, res)
 
@@ -943,7 +974,7 @@ def p_condicionp(p):
 def p_f_if(p):
     "f_if :"
     exp_type = pilaTipos.pop()
-    if exp_type == 0:
+    if exp_type == 2: # debe ser booleana
         res = pilaOperandos.pop()
         cuadruplos.add("GOTOF", res, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1)
@@ -972,7 +1003,7 @@ def p_f_while(p):
 def p_f_exprwhile(p):
     "f_exprwhile :"
     exp_type = pilaTipos.pop()
-    if exp_type == 0:
+    if exp_type == 2:
         res = pilaOperandos.pop()
         cuadruplos.add("GOTOF", res, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1)
@@ -1017,7 +1048,15 @@ def p_f_for_to(p):
 
 def p_f_for_end(p):
     "f_for_end :" 
-    cuadruplos.add("+", var_ctrl, "1", dirTempNum) # sumar 1 a la var de control
+
+    if not constantes.check_var(1):
+        constantes.add_var(1, 0, None, dirConstNum)
+        const_mem = dirConstNum
+        add_memory("constantes", 0, 1)
+    else:
+        const_tipo, const_mem = constantes.get_var(1)
+
+    cuadruplos.add("+", var_ctrl, const_mem, dirTempNum) # sumar 1 a la var de control
     cuadruplos.add("=", dirTempNum, -1, var_ctrl) # asignar el resultado a la var de control
     add_memory("temp", 0, 1)
 
@@ -1075,7 +1114,14 @@ def p_write_listp(p):
 
 def p_f_string(p):
     "f_string :"
-    pilaOperandos.append(p[-1])
+    if not constantes.check_var(p[-1]):
+        constantes.add_var(p[-1], 1, None, dirConstStr)
+        const_mem = dirConstStr
+        add_memory("constantes", 1, 1)
+    else:
+        const_tipo, const_mem = constantes.get_var(p[-1])
+
+    pilaOperandos.append(const_mem)
     pilaTipos.append(1)
 
 def p_return(p):
@@ -1090,12 +1136,22 @@ def p_return(p):
         if len(curr_func) > 2: # es una funcion en un objeto
             if res_type == 0 and mem_available("objeto", res_type):
                 curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirObjNum)
-                cuadruplos.add("RET", res, -1, dirObjNum) # asigna el valor de retorno a la variable creada
+
+                cuadruplos.add("SUMREF", dirObjNum, -1, dirTempNum) # obtener valor numerico de la direccion sumando la direccion base del objeto más la dirección relativa del atributo (dirObjStr)
+                cuadruplos.add("=", dirTempNum, -1, dirTempPointNum) # asignarle la dirección al apuntador
+
+                cuadruplos.add("RET", res, -1, dirTempPointNum) # asigna el valor de retorno a la variable a la que apunta dirTempPointNum
+                add_memory("temp", 3, 1)
                 
                 add_memory("objeto", 0, 1)
             elif res_type == 1 and mem_available("objeto", res_type):
                 curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirObjStr)
-                cuadruplos.add("RET", res, -1, dirObjStr) # asigna el valor de retorno a la variable creada
+
+                cuadruplos.add("SUMREF", dirObjStr, -1, dirTempNum) # obtener valor numerico de la direccion sumando la direccion base del objeto más la dirección relativa del atributo (dirObjStr)
+                cuadruplos.add("=", dirTempNum, -1, dirTempPointStr) # asignarle la dirección al apuntador
+
+                cuadruplos.add("RET", res, -1, dirTempPointStr) # asigna el valor de retorno a la variable a la que apunta dirTempPoint
+                add_memory("temp", 4, 1)
                 
                 add_memory("objeto", 1, 1)
             else:
@@ -1104,12 +1160,12 @@ def p_return(p):
         else:
             if res_type == 0 and mem_available("global", res_type):
                 curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirGlobalNum)
-                cuadruplos.add("RET", res, -1, dirGlobalNum)
+                cuadruplos.add("RET", res, -1, dirGlobalNum) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
                 
                 add_memory("global", 0, 1)
             elif res_type == 1 and mem_available("global", res_type):
                 curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirGlobalStr)
-                cuadruplos.add("RET", res, -1, dirGlobalStr)
+                cuadruplos.add("RET", res, -1, dirGlobalStr) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
                 
                 add_memory("global", 1, 1)
             else:

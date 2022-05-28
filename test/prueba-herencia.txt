@@ -1,0 +1,30 @@
+program prueba3;
+
+type objeto {
+    def number : m, o;
+
+    func f1(): number {
+        def number : d;
+        o = d;
+        call ret(d);
+    }
+}
+
+type objeto2 : objeto {
+    def number : m2, o2;
+
+    func f2(): number {
+        def number : d;
+        call ret(d);
+    }
+}
+
+def number : n, p;
+def objeto : o;
+def objeto2 : o2;
+
+main() {
+    p = call o2:f2();
+}
+
+end;
