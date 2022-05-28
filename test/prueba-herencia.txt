@@ -24,7 +24,7 @@ def objeto : o;
 def objeto2 : o2;
 
 main() {
-    p = call o2:f2();
+    p = call o:f1();
 }
 
 end;

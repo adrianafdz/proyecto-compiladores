@@ -58,6 +58,21 @@ check_obj = None
 param_list = []
 param_count = 0
 
+def add_constante(value, tipo):
+    if not constantes.check_var(value):
+        if tipo == 0:
+            constantes.add_var(value, 0, None, dirConstNum)
+            const_mem = dirConstNum
+            add_memory("constantes", 0, 1)
+        elif tipo == 1:
+            constantes.add_var(value, 1, None, dirConstStr)
+            const_mem = dirConstStr
+            add_memory("constantes", 1, 1)
+    else:
+        const_tipo, const_mem = constantes.get_var(value)
+
+    return const_mem
+
 def mem_available(scope, tipo):
     if scope == 'global':
         if tipo == 0: # number
@@ -703,19 +718,8 @@ def p_f_index(p):
     "f_index :"
     lim_sup, m = pilaDim[-1][0].get_node(dim)
 
-    if not constantes.check_var(0):
-        constantes.add_var(0, 0, None, dirConstNum)
-        const_mem = dirConstNum
-        add_memory("constantes", 0, 1)
-    else:
-        const_tipo, const_mem = constantes.get_var(0)
-
-    if not constantes.check_var(lim_sup):
-        constantes.add_var(lim_sup, 0, None, dirConstNum)
-        lim_mem = dirConstNum
-        add_memory("constantes", 0, 1)
-    else:
-        const_tipo, lim_mem = constantes.get_var(lim_sup)
+    const_mem = add_constante(0, 0)
+    lim_mem = add_constante(lim_sup, 0)
 
     cuadruplos.add("VERIFY", pilaOperandos[-1], const_mem, lim_mem)
 
@@ -723,12 +727,7 @@ def p_f_index(p):
         aux = pilaOperandos.pop()
         pilaTipos.pop()
 
-        if not constantes.check_var(m):
-            constantes.add_var(m, 0, None, dirConstNum)
-            m_mem = dirConstNum
-            add_memory("constantes", 0, 1)
-        else:
-            const_tipo, m_mem = constantes.get_var(m)
+        m_mem = add_constante(m, 0)
 
         cuadruplos.add("*", aux, m_mem, dirTempNum)
         pilaOperandos.append(dirTempNum)
@@ -766,28 +765,23 @@ def p_f_end_array(p):
     const_tipo, const_mem = constantes.get_var(0) # K = 0
     cuadruplos.add("+", aux1, const_mem, dirTempNum)
 
-    if not constantes.check_var(pilaDim[-1][2]):
-        constantes.add_var(pilaDim[-1][2], 0, None, dirConstNum) # base
-        base_mem = dirConstNum
-        add_memory("constantes", 0, 1)
-    else:
-        const_tipo, base_mem = constantes.get_var(pilaDim[-1][2])
+    base_mem = add_constante(pilaDim[-1][2], 0)
 
     cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1) # contiene el valor numerico de la direccion
 
     if curr_tipo == 0:
         cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointNum) # asigna la direccion al apuntador
-        add_memory("temp", 0, 2)
-        add_memory("temp", 3, 1)
         pilaOperandos.append(dirTempPointNum)
         pilaTipos.append(3)
+        add_memory("temp", 0, 2)
+        add_memory("temp", 3, 1)
 
     elif curr_tipo == 1:
         cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointStr) # asigna la direccion al apuntador
-        add_memory("temp", 0, 2)
-        add_memory("temp", 4, 1)
         pilaOperandos.append(dirTempPointStr)
         pilaTipos.append(4)
+        add_memory("temp", 0, 2)
+        add_memory("temp", 4, 1)
 
     pilaOperadores.pop() # quitar fake bottom
     pilaDim.pop()
@@ -898,22 +892,13 @@ def p_fact(p):
 
     if p[1] == '-':
         pilaTipos.append(0)
-        if not constantes.check_var(-1 * p[2]):
-            constantes.add_var(-1 * p[2], 0, None, dirConstNum)
-            pilaOperandos.append(dirConstNum)
-            add_memory("constantes", 0, 1)
-        else:
-            var_tipo, var_mem = constantes.get_var(-1 * p[2])
-            pilaOperandos.append(var_mem)
+        var_mem = add_constante(-1 * p[2], 0)
+        pilaOperandos.append(var_mem)
+
     elif p[1] == '+':
         pilaTipos.append(0)
-        if not constantes.check_var(p[2]):
-            constantes.add_var(p[2], 0, None, dirConstNum)
-            pilaOperandos.append(dirConstNum)
-            add_memory("constantes", 0, 1)
-        else:
-            var_tipo, var_mem = constantes.get_var(p[2])
-            pilaOperandos.append(var_mem)
+        var_mem = add_constante(p[2], 0)
+        pilaOperandos.append(var_mem)
 
 def p_f_return_val(p):
     "f_return_val :"
@@ -955,14 +940,8 @@ def p_rparen(p):
 def p_f_fact(p):
     "f_fact :"
     pilaTipos.append(0)
-
-    if not constantes.check_var(p[-1]):
-        constantes.add_var(p[-1], 0, None, dirConstNum)
-        pilaOperandos.append(dirConstNum)
-        add_memory("constantes", 0, 1)
-    else:
-        var_tipo, var_mem = constantes.get_var(p[-1])
-        pilaOperandos.append(var_mem)
+    var_mem = add_constante(p[-1], 0)
+    pilaOperandos.append(var_mem)
 
 def p_condicion(p):
     '''condicion : IF '(' expresion ')' f_if THEN '{' estatutos '}' condicionp f_endif'''
@@ -1048,14 +1027,7 @@ def p_f_for_to(p):
 
 def p_f_for_end(p):
     "f_for_end :" 
-
-    if not constantes.check_var(1):
-        constantes.add_var(1, 0, None, dirConstNum)
-        const_mem = dirConstNum
-        add_memory("constantes", 0, 1)
-    else:
-        const_tipo, const_mem = constantes.get_var(1)
-
+    const_mem = add_constante(1, 0)
     cuadruplos.add("+", var_ctrl, const_mem, dirTempNum) # sumar 1 a la var de control
     cuadruplos.add("=", dirTempNum, -1, var_ctrl) # asignar el resultado a la var de control
     add_memory("temp", 0, 1)
@@ -1114,13 +1086,7 @@ def p_write_listp(p):
 
 def p_f_string(p):
     "f_string :"
-    if not constantes.check_var(p[-1]):
-        constantes.add_var(p[-1], 1, None, dirConstStr)
-        const_mem = dirConstStr
-        add_memory("constantes", 1, 1)
-    else:
-        const_tipo, const_mem = constantes.get_var(p[-1])
-
+    const_mem = add_constante(p[-1], 1)
     pilaOperandos.append(const_mem)
     pilaTipos.append(1)
 

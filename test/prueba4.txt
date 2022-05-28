@@ -5,7 +5,7 @@ def number[11]: y;
 def number : z, w;
 
 main() {
-    z = 2 + x[3*2][1+y[5]];
+    z = y[5];
 }
 
 end;
