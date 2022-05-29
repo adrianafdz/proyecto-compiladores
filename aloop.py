@@ -544,7 +544,7 @@ def p_f_verify_func(p):
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
-        cuadruplos.add("GOSUB", p[-1], -1, -1)
+        cuadruplos.add("GOSUB", p[-1], -1, f_start)
         recursos = curr_dir[-1].get_resources(p[-1])
         param_list = curr_dir[-1].get_params(p[-1])
         cuadruplos.add("ERA", p[-1], -1, -1)
@@ -570,7 +570,7 @@ def p_f_verify_func_composite(p):
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
-        cuadruplos.add("GOSUB", p[-1], obj_type, -1)
+        cuadruplos.add("GOSUB", p[-1], obj_type, f_start)
         recursos = obj_funcs.get_resources(p[-1])
         param_list = obj_funcs.get_params(p[-1])
         cuadruplos.add("ERA", p[-1], obj_type, -1)
