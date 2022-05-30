@@ -4,19 +4,26 @@ type objeto {
     def number : m, o;
     def string : s;
 
-    func f1(): string {
-        def number : d;
-        def string : st;
-        o = d;
-        call ret(st);
+    func f1(number a): number {
+        call ret(a);
+    }
+
+    func f2(number b): number {
+        b = call f1(b);
+        call ret(b);
     }
 }
 
 def number : n, p;
-def objeto : o;
+def objeto : o, r;
+
+func f2(number a): number {
+    a = call f2(a);
+    call ret(2);
+}
 
 main() {
-    p = call o:f1();
+    n = call o:f2( call f2(p) );
 }
 
 end;

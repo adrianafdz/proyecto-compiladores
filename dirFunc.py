@@ -74,7 +74,7 @@ class dirFunc:
         return self.dir_func[func]['vars'].get_return_value(nombre)
 
     def add_param(self, func, tipo):
-        if 'params' not in self.dir_func[func]:
+        if 'params_count' not in self.dir_func[func]:
             self.dir_func[func]['params'] = [tipo]
             self.dir_func[func]['params_count'] = 1
         else:

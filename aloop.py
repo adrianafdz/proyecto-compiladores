@@ -36,6 +36,11 @@ pilaTipos = deque()
 pilaSaltos = deque()
 pilaDim = deque()
 
+function_call = deque()
+check_obj = deque()
+param_list = deque()
+param_count = deque()
+
 tipos = [0, 1, 2, 3, 4, 5, 6, 7] # number, string, bool, pointernum, pointerstr, objeto, nothing
 curr_tipo = 7
 dimension = None
@@ -54,9 +59,6 @@ constantes = tablaVars()
 
 dirFuncG = None # directorio de funciones global
 dirFuncObj = None # directorio de funciones de un objeto
-check_obj = None
-param_list = []
-param_count = 0
 
 def add_constante(value, tipo):
     if not constantes.check_var(value):
@@ -319,6 +321,21 @@ def p_f_tipofunc(p):
     "f_tipofunc :"
     curr_dir[-1].update_func_type(curr_func[-1], curr_tipo)
 
+    if len(curr_func) > 2: # metodo en un objeto
+        if curr_tipo == 0:
+            curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirObjNum)
+        else:
+            curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirObjStr)
+
+        add_memory("objeto", curr_tipo, 1)
+    else: # funcion global
+        if curr_tipo == 0:
+            curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirGlobalNum)
+        else:
+            curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirGlobalStr)
+
+        add_memory("global", curr_tipo, 1)
+
 def p_f_endfunc(p):
     "f_endfunc :"
     global dirLocalNum, dirLocalStr, dirTempNum, dirTempStr, dirTempBool, dirTempPointNum, dirTempPointStr
@@ -525,12 +542,24 @@ def p_estatuto(p):
                 | CALL call_func ';' '''
 
 def p_call_func(p):
-    '''call_func : func
+    '''call_func : func f_end_call f_end_check
                  | input 
                  | write 
                  | to_num 
                  | to_str
                  | return '''
+
+def p_f_end_call(p):
+    "f_end_call :"
+    if check_obj[-1] is None:
+        f_type, f_start = curr_dir[-1].get_func(function_call[-1])
+        cuadruplos.add("GOSUB", function_call[-1], -1, f_start)
+    else:
+        obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1]) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+        obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
+        f_type, f_start = obj_funcs.get_func(function_call[-1])
+        cuadruplos.add("GOSUB", function_call[-1], obj_type, f_start)
+    function_call.pop()
 
 def p_func(p):
     '''func : ID  f_verify_func '(' args ')'
@@ -538,44 +567,40 @@ def p_func(p):
 
 def p_f_verify_func(p):
     "f_verify_func :"
-    global found_error, param_list, param_count
+    global found_error
     f_type, f_start = curr_dir[-1].get_func(p[-1])
     if f_type == -1:
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
-        cuadruplos.add("GOSUB", p[-1], -1, f_start)
-        recursos = curr_dir[-1].get_resources(p[-1])
-        param_list = curr_dir[-1].get_params(p[-1])
-        cuadruplos.add("ERA", p[-1], -1, -1)
-        param_count = 0
-        curr_func.append(p[-1])
+        function_call.append(p[-1])
+        check_obj.append(None)
+        param_list.append(curr_dir[-1].get_params(p[-1]))
+        param_count.append(0)
+
+        if len(curr_func) > 2: # esta en un objeto
+            cuadruplos.add("ERA", p[-1], curr_func[-2], -1)
+        else:
+            cuadruplos.add("ERA", p[-1], -1, -1)
 
 def p_f_verify_func_composite(p):
     "f_verify_func_composite :"
-    global found_error, param_list, param_count
+    global found_error
     
-    if len(curr_func) > 1: # esta en una función, busca objeto localmente
-        obj_type, obj_mem = curr_dir[0].get_vars_from_obj(curr_func[-1]).get_var(check_obj)
-    else:
-        obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
-    
-    curr_func.append(check_obj)
+    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1]) # busca de qué tipo de objeto es la variable (busca en las variables globales)
     obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
 
     f_type, f_start = obj_funcs.get_func(p[-1])
-    curr_func.append(p[-1])
+    function_call.append(p[-1])
 
     if f_type == -1:
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
     else:
-        cuadruplos.add("GOSUB", p[-1], obj_type, f_start)
-        recursos = obj_funcs.get_resources(p[-1])
-        param_list = obj_funcs.get_params(p[-1])
+        param_list.append(obj_funcs.get_params(p[-1]))
         cuadruplos.add("ERA", p[-1], obj_type, -1)
         cuadruplos.add("OBJREF", obj_mem[0], obj_mem[1], -1) # manda una referencia de la dirección del objeto por si se modifica
-        param_count = 0
+        param_count.append(0)
 
 def p_args(p):
     '''args : args_list f_end_args
@@ -592,24 +617,27 @@ def p_f_arg(p):
     arg = pilaOperandos.pop()
     arg_type = pilaTipos.pop()
 
-    param_count += 1
+    param_count[-1] += 1
 
-    if param_count > len(param_list):
+    if param_count[-1] > len(param_list[-1]):
         print("ERROR: Too many arguments, line", lexer.lineno)
         found_error = True
     else:
-        if arg_type == param_list[param_count-1]:
-            cuadruplos.add("PARAMETER", arg, param_count, -1)
+        if arg_type == param_list[-1][param_count[-1] - 1]:
+            cuadruplos.add("PARAMETER", arg, param_count[-1], -1)
         else:
-            print("ERROR: Wrong argument type, line", lexer.lineno, ". Argument", param_count)
+            print("ERROR: Wrong argument type, line", lexer.lineno, ". Argument", param_count[-1])
             found_error = True
 
 def p_f_end_args(p):
     "f_end_args :"
     global found_error
-    if param_count < len(param_list):
+    if param_count[-1] < len(param_list[-1]):
         print("ERROR: Missing arguments, line", lexer.lineno)
         found_error = True
+    else:
+        param_list.pop()
+        param_count.pop()
 
 def p_asignacion(p):
     '''asignacion : var '=' f_oper expresion ';' '''
@@ -619,8 +647,8 @@ def p_asignacion(p):
         print("ERROR: type mismatch, line", lexer.lineno)
 
 def p_var(p):
-    '''var : ID f_varobj ':' ID f_verify_type_composite indexacion
-           | ID f_verify_type indexacion'''
+    '''var : ID f_varobj ':' ID f_verify_type_composite indexacion f_end_check
+           | ID f_verify_type indexacion f_end_check'''
 
 def p_indexacion(p):
     '''indexacion : f_start_array '[' expresion f_index ']' f_end_array
@@ -629,12 +657,18 @@ def p_indexacion(p):
 
 def p_f_varobj(p):
     "f_varobj :"
-    global check_obj
-    check_obj = p[-1]
+    check_obj.append(p[-1])
+
+def p_f_end_check(p):
+    "f_end_check :"
+    check_obj.pop()
 
 def p_f_verify_type(p):
     "f_verify_type :"
     global found_error, has_dim, base_dir
+
+    check_obj.append(None)
+
     var_type, var_mem = curr_dir[-1].get_var(curr_func[-1], p[-1])
     has_dim = curr_dir[-1].get_dim(curr_func[-1], p[-1])
     base_dir = var_mem
@@ -647,7 +681,7 @@ def p_f_verify_type(p):
             print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno) # local
             found_error = True
         else:
-            if len(curr_func) > 2: # significa que está en un método de un objeto y está accesando a uno de sus atributos
+            if len(curr_func) > 2: # significa que está en un método de un objeto y está accesando a uno de sus propios atributos
                 cuadruplos.add("SUMREF", var_mem, -1, dirTempNum) # obtener valor numerico de la direccion sumando la direccion base del objeto más la dirección relativa del atributo (var_mem)
 
                 if var_type == 0:
@@ -674,7 +708,8 @@ def p_f_verify_type(p):
 def p_f_verify_type_composite(p):
     "f_verify_type_composite :"
     global found_error
-    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+    
+    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1]) # busca de qué tipo de objeto es la variable (busca en las variables globales)
 
     obj_vars = curr_dir[0].get_vars_from_obj(obj_type) # trae la tabla de variables de ese objeto
 
@@ -888,7 +923,7 @@ def p_fact(p):
             | var
             | NUM f_fact
             | OPTERM NUM
-            | CALL call_func f_return_val '''
+            | CALL func f_return_val f_end_call f_end_check'''
 
     if p[1] == '-':
         pilaTipos.append(0)
@@ -902,29 +937,26 @@ def p_fact(p):
 
 def p_f_return_val(p):
     "f_return_val :"
-    func_name = curr_func.pop()
+    
+    func_name = function_call[-1]
+    
+    if check_obj[-1] is not None: # metodo de un objeto
+        obj_name = check_obj[-1]
+        obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], obj_name) # busca de qué tipo de objeto es la variable (busca en las variables globales)
+        ret_type, ret_mem = curr_dir[0].get_return_value(obj_type, func_name)
 
-    if len(curr_func) > 1: # funcion de un objeto
-        obj_name = curr_func.pop()
-
-        if len(curr_func) > 1: # esta en una función, busca objeto localmente
-            obj_type, obj_mem = curr_dir[0].get_vars_from_obj(curr_func[-1]).get_var(obj_name)
-        else:
-            obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], obj_name) # busca de qué tipo de objeto es la variable (busca en las variables globales)
-        
-        obj_vars = curr_dir[0].get_vars_from_obj(obj_type) # trae la tabla de variables de ese objeto
-
-        ret_type, ret_mem = obj_vars.get_return_value(func_name)
-
-        if ret_type == 0:
+        if ret_type == 0 or ret_type == 3: # regresa un apuntador cuando el metodo regresa un atributo de si mismo
             ret_mem = obj_mem[0] + (ret_mem)
-        elif ret_type == 1:
+        elif ret_type == 1 or ret_type == 4:
             ret_mem = obj_mem[1] + (ret_mem - 3000)
-    else: 
-        ret_type, ret_mem = curr_dir[-1].get_return_value(curr_func[-1], func_name)
+    else: # funcion global
+        if len(curr_func) > 2: # accesando metodo dentro de otro metodo
+            ret_type, ret_mem = curr_dir[0].get_return_value(curr_func[-2], func_name)
+        else: # funcion global
+            ret_type, ret_mem = curr_dir[-1].get_return_value(curr_func[0], func_name)
 
     if ret_type == -1:
-        print("ERROOR, No return value, line", lexer.lineno)
+        print("ERROR, No return value, line", lexer.lineno)
     else:
         pilaOperandos.append(ret_mem)
         pilaTipos.append(ret_type)
@@ -1098,42 +1130,22 @@ def p_return(p):
 
     f_type, f_start = curr_dir[-1].get_func(curr_func[-1])
 
-    if res_type == f_type:
+    if res_type == f_type or cubo.check('=', res_type, f_type) != -1:
         if len(curr_func) > 2: # es una funcion en un objeto
-            if res_type == 0 and mem_available("objeto", res_type):
-                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirObjNum)
+            if ( res_type == 0 or res_type == 3 ) and mem_available("objeto", 0):
+                cuadruplos.add("RET", res, -1, -1) # asigna el valor de retorno a la variable a la que apunta dirTempPointNum
 
-                cuadruplos.add("SUMREF", dirObjNum, -1, dirTempNum) # obtener valor numerico de la direccion sumando la direccion base del objeto más la dirección relativa del atributo (dirObjStr)
-                cuadruplos.add("=", dirTempNum, -1, dirTempPointNum) # asignarle la dirección al apuntador
-
-                cuadruplos.add("RET", res, -1, dirTempPointNum) # asigna el valor de retorno a la variable a la que apunta dirTempPointNum
-                add_memory("temp", 3, 1)
+            elif ( res_type == 1 or res_type == 3 ) and mem_available("objeto", 1):
+                cuadruplos.add("RET", res, -1, -1) # asigna el valor de retorno a la variable a la que apunta dirTempPoint
                 
-                add_memory("objeto", 0, 1)
-            elif res_type == 1 and mem_available("objeto", res_type):
-                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirObjStr)
-
-                cuadruplos.add("SUMREF", dirObjStr, -1, dirTempNum) # obtener valor numerico de la direccion sumando la direccion base del objeto más la dirección relativa del atributo (dirObjStr)
-                cuadruplos.add("=", dirTempNum, -1, dirTempPointStr) # asignarle la dirección al apuntador
-
-                cuadruplos.add("RET", res, -1, dirTempPointStr) # asigna el valor de retorno a la variable a la que apunta dirTempPoint
-                add_memory("temp", 4, 1)
-                
-                add_memory("objeto", 1, 1)
             else:
                 print("ERROR: memoria llena")
                 found_error = True
         else:
             if res_type == 0 and mem_available("global", res_type):
-                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirGlobalNum)
-                cuadruplos.add("RET", res, -1, dirGlobalNum) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
-                
-                add_memory("global", 0, 1)
+                cuadruplos.add("RET", res, -1, -1) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
             elif res_type == 1 and mem_available("global", res_type):
-                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], res_type, dirGlobalStr)
-                cuadruplos.add("RET", res, -1, dirGlobalStr) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
-                
-                add_memory("global", 1, 1)
+                cuadruplos.add("RET", res, -1, -1) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
             else:
                 print("ERROR: memoria global llena")
                 found_error = True
