@@ -1,5 +1,5 @@
-GOTO,-1,-1,-1
-RET,5000,-1,15
+GOTO,-1,-1,15
+RET,1,-1,-1
 ENDFUNC,-1,-1,-1
 ERA,f1,objeto,-1
 PARAMETER,5000,1,-1

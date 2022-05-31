@@ -5,7 +5,7 @@ type objeto {
     def string : s;
 
     func f1(number a): number {
-        call ret(a);
+        call ret(o);
     }
 
     func f2(number b): number {

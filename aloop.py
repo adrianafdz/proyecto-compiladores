@@ -235,8 +235,8 @@ def p_f_start(p):
     global dirFuncG
     dirFuncG = dirFunc() # crea el directorio de funciones
     curr_dir.append(dirFuncG) # lo agrega al stack de directorios
-    cuadruplos.add("GOTO", -1, -1, -1) # genera el primer cuadruplo GOTO main
     pilaSaltos.append(cuadruplos.get_cont()) # guarda el cuadruplo para rellenarlo después
+    cuadruplos.add("GOTO", -1, -1, -1) # genera el primer cuadruplo GOTO main
 
 def p_f_prog(p):
     "f_prog :"
@@ -693,26 +693,8 @@ def p_f_verify_type(p):
             print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno) # local
             found_error = True
         else:
-            if len(curr_func) > 2: # significa que está en un método de un objeto y está accesando a uno de sus propios atributos
-                cuadruplos.add("SUMREF", var_mem, -1, dirTempNum) # obtener valor numerico de la direccion sumando la direccion base del objeto más la dirección relativa del atributo (var_mem)
-
-                if var_type == 0:
-                    cuadruplos.add("=", dirTempNum, -1, dirTempPointNum) # asignarle la dirección al apuntador
-                    pilaOperandos.append(dirTempPointNum)
-                    pilaTipos.append(3)
-                    add_memory("temp", 3, 1)
-
-                elif var_type == 1:
-                    cuadruplos.add("=", dirTempNum, -1, dirTempPointStr) # asignarle la dirección al apuntador
-                    pilaOperandos.append(dirTempPointStr)
-                    pilaTipos.append(4)
-                    add_memory("temp", 4, 1)
-
-                add_memory("temp", 0, 1)
-
-            else:
-                pilaOperandos.append(var_mem)
-                pilaTipos.append(var_type)
+            pilaOperandos.append(var_mem)
+            pilaTipos.append(var_type)
     else:
         pilaOperandos.append(var_mem)
         pilaTipos.append(var_type)
