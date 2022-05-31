@@ -319,8 +319,8 @@ def p_funciones(p):
                   | empty'''
 
 def p_funcion(p):
-    '''funcion : FUNC ID f_startfunc '(' params ')' ':' tipo f_tipofunc '{' vars estatutos '}' f_endfunc
-               | FUNC ID f_startfunc '(' params ')' ':' NOTHING f_nothing f_tipofunc '{' vars estatutos '}' f_endfunc '''
+    '''funcion : FUNC ID f_startfunc '(' params ')' ':' tipo f_tipofunc '{' cvars estatutos '}' f_endfunc
+               | FUNC ID f_startfunc '(' params ')' ':' NOTHING f_nothing f_tipofunc '{' cvars estatutos '}' f_endfunc '''
 
 def p_f_startfunc(p):
     "f_startfunc :"

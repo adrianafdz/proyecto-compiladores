@@ -20,8 +20,8 @@ Rule 14    f_cvars -> <empty>
 Rule 15    f_endclass -> <empty>
 Rule 16    funciones -> funciones funcion
 Rule 17    funciones -> empty
-Rule 18    funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc
-Rule 19    funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+Rule 18    funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+Rule 19    funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
 Rule 20    f_startfunc -> <empty>
 Rule 21    f_nothing -> <empty>
 Rule 22    f_tipofunc -> <empty>
@@ -190,7 +190,7 @@ clase                : 6
 clases               : 1 6
 condicion            : 52
 condicionp           : 107
-cvars                : 8 9 12
+cvars                : 8 9 12 18 19
 dimension            : 12 24
 empty                : 7 13 17 26 36 43 48 77 109
 estatuto             : 47
@@ -267,7 +267,7 @@ tipo                 : 12 18 24 44 45
 to_num               : 57
 to_str               : 58 130
 var                  : 72 99 122 124 129
-vars                 : 1 18 19 24 25
+vars                 : 1 24 25
 while                : 50
 write                : 56
 write_list           : 125 126
@@ -400,12 +400,6 @@ state 11
     DEF             reduce using rule 26 (vars -> empty .)
     MAIN            reduce using rule 26 (vars -> empty .)
     FUNC            reduce using rule 26 (vars -> empty .)
-    }               reduce using rule 26 (vars -> empty .)
-    CALL            reduce using rule 26 (vars -> empty .)
-    WHILE           reduce using rule 26 (vars -> empty .)
-    FOR             reduce using rule 26 (vars -> empty .)
-    IF              reduce using rule 26 (vars -> empty .)
-    ID              reduce using rule 26 (vars -> empty .)
 
 
 state 12
@@ -420,8 +414,8 @@ state 13
 
     (1) start -> PROGRAM f_start ID f_prog ; clases vars funciones . MAIN f_main ( ) { estatutos } END f_end ;
     (16) funciones -> funciones . funcion
-    (18) funcion -> . FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> . FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> . FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> . FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
 
     MAIN            shift and go to state 17
     FUNC            shift and go to state 19
@@ -481,8 +475,8 @@ state 18
 
 state 19
 
-    (18) funcion -> FUNC . ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> FUNC . ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> FUNC . ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> FUNC . ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
 
     ID              shift and go to state 26
 
@@ -548,8 +542,8 @@ state 25
 
 state 26
 
-    (18) funcion -> FUNC ID . f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> FUNC ID . f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> FUNC ID . f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> FUNC ID . f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
     (20) f_startfunc -> .
 
     (               reduce using rule 20 (f_startfunc -> .)
@@ -615,8 +609,8 @@ state 33
 
 state 34
 
-    (18) funcion -> FUNC ID f_startfunc . ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> FUNC ID f_startfunc . ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> FUNC ID f_startfunc . ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc . ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
 
     (               shift and go to state 42
 
@@ -679,6 +673,11 @@ state 40
     DEF             reduce using rule 13 (cvars -> empty .)
     }               reduce using rule 13 (cvars -> empty .)
     FUNC            reduce using rule 13 (cvars -> empty .)
+    CALL            reduce using rule 13 (cvars -> empty .)
+    WHILE           reduce using rule 13 (cvars -> empty .)
+    FOR             reduce using rule 13 (cvars -> empty .)
+    IF              reduce using rule 13 (cvars -> empty .)
+    ID              reduce using rule 13 (cvars -> empty .)
 
 
 state 41
@@ -690,8 +689,8 @@ state 41
 
 state 42
 
-    (18) funcion -> FUNC ID f_startfunc ( . params ) : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> FUNC ID f_startfunc ( . params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> FUNC ID f_startfunc ( . params ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( . params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
     (42) params -> . pparams
     (43) params -> . empty
     (44) pparams -> . tipo ID f_param
@@ -805,8 +804,8 @@ state 51
 
 state 52
 
-    (18) funcion -> FUNC ID f_startfunc ( params . ) : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> FUNC ID f_startfunc ( params . ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> FUNC ID f_startfunc ( params . ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( params . ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
 
     )               shift and go to state 68
 
@@ -841,12 +840,6 @@ state 56
     DEF             reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
     MAIN            reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
     FUNC            reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
-    }               reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
-    CALL            reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
-    WHILE           reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
-    FOR             reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
-    IF              reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
-    ID              reduce using rule 24 (vars -> vars DEF tipo dimension : lista_id ; .)
 
 
 state 57
@@ -890,12 +883,6 @@ state 61
     DEF             reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
     MAIN            reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
     FUNC            reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
-    }               reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
-    CALL            reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
-    WHILE           reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
-    FOR             reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
-    IF              reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
-    ID              reduce using rule 25 (vars -> vars DEF ID f_varsobj : lista_id_obj ; .)
 
 
 state 62
@@ -923,8 +910,8 @@ state 64
 
     (9) clase -> TYPE ID f_startclass { cvars f_cvars funciones . } f_endclass
     (16) funciones -> funciones . funcion
-    (18) funcion -> . FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> . FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> . FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> . FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
 
     }               shift and go to state 76
     FUNC            shift and go to state 19
@@ -989,8 +976,8 @@ state 67
 
 state 68
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) . : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> FUNC ID f_startfunc ( params ) . : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> FUNC ID f_startfunc ( params ) . : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( params ) . : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
 
     :               shift and go to state 90
 
@@ -1261,8 +1248,8 @@ state 89
 
 state 90
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) : . tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> FUNC ID f_startfunc ( params ) : . NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> FUNC ID f_startfunc ( params ) : . tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( params ) : . NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
     (40) tipo -> . NUMBER
     (41) tipo -> . STRING
 
@@ -1676,7 +1663,7 @@ state 127
 
 state 128
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo . f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo . f_tipofunc { cvars estatutos } f_endfunc
     (22) f_tipofunc -> .
 
     {               reduce using rule 22 (f_tipofunc -> .)
@@ -1685,7 +1672,7 @@ state 128
 
 state 129
 
-    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING . f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING . f_nothing f_tipofunc { cvars estatutos } f_endfunc
     (21) f_nothing -> .
 
     {               reduce using rule 21 (f_nothing -> .)
@@ -1713,8 +1700,8 @@ state 132
 
     (8) clase -> TYPE ID f_startclass : ID f_clasepadre { cvars f_cvars funciones . } f_endclass
     (16) funciones -> funciones . funcion
-    (18) funcion -> . FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc
-    (19) funcion -> . FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc
+    (18) funcion -> . FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc
+    (19) funcion -> . FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc
 
     }               shift and go to state 164
     FUNC            shift and go to state 19
@@ -2138,14 +2125,14 @@ state 159
 
 state 160
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc . { vars estatutos } f_endfunc
+    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc . { cvars estatutos } f_endfunc
 
     {               shift and go to state 193
 
 
 state 161
 
-    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing . f_tipofunc { vars estatutos } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing . f_tipofunc { cvars estatutos } f_endfunc
     (22) f_tipofunc -> .
 
     {               reduce using rule 22 (f_tipofunc -> .)
@@ -2188,6 +2175,11 @@ state 165
     DEF             reduce using rule 12 (cvars -> cvars DEF tipo dimension : lista_id ; .)
     }               reduce using rule 12 (cvars -> cvars DEF tipo dimension : lista_id ; .)
     FUNC            reduce using rule 12 (cvars -> cvars DEF tipo dimension : lista_id ; .)
+    CALL            reduce using rule 12 (cvars -> cvars DEF tipo dimension : lista_id ; .)
+    WHILE           reduce using rule 12 (cvars -> cvars DEF tipo dimension : lista_id ; .)
+    FOR             reduce using rule 12 (cvars -> cvars DEF tipo dimension : lista_id ; .)
+    IF              reduce using rule 12 (cvars -> cvars DEF tipo dimension : lista_id ; .)
+    ID              reduce using rule 12 (cvars -> cvars DEF tipo dimension : lista_id ; .)
 
 
 state 166
@@ -2577,10 +2569,9 @@ state 192
 
 state 193
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { . vars estatutos } f_endfunc
-    (24) vars -> . vars DEF tipo dimension : lista_id ;
-    (25) vars -> . vars DEF ID f_varsobj : lista_id_obj ;
-    (26) vars -> . empty
+    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { . cvars estatutos } f_endfunc
+    (12) cvars -> . cvars DEF tipo dimension : lista_id ;
+    (13) cvars -> . empty
     (133) empty -> .
 
     DEF             reduce using rule 133 (empty -> .)
@@ -2591,12 +2582,12 @@ state 193
     IF              reduce using rule 133 (empty -> .)
     ID              reduce using rule 133 (empty -> .)
 
-    vars                           shift and go to state 222
-    empty                          shift and go to state 11
+    cvars                          shift and go to state 222
+    empty                          shift and go to state 40
 
 state 194
 
-    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc . { vars estatutos } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc . { cvars estatutos } f_endfunc
 
     {               shift and go to state 223
 
@@ -2903,14 +2894,13 @@ state 221
 
 state 222
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars . estatutos } f_endfunc
-    (24) vars -> vars . DEF tipo dimension : lista_id ;
-    (25) vars -> vars . DEF ID f_varsobj : lista_id_obj ;
+    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars . estatutos } f_endfunc
+    (12) cvars -> cvars . DEF tipo dimension : lista_id ;
     (47) estatutos -> . estatutos estatuto
     (48) estatutos -> . empty
     (133) empty -> .
 
-    DEF             shift and go to state 14
+    DEF             shift and go to state 50
     }               reduce using rule 133 (empty -> .)
     CALL            reduce using rule 133 (empty -> .)
     WHILE           reduce using rule 133 (empty -> .)
@@ -2923,10 +2913,9 @@ state 222
 
 state 223
 
-    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { . vars estatutos } f_endfunc
-    (24) vars -> . vars DEF tipo dimension : lista_id ;
-    (25) vars -> . vars DEF ID f_varsobj : lista_id_obj ;
-    (26) vars -> . empty
+    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { . cvars estatutos } f_endfunc
+    (12) cvars -> . cvars DEF tipo dimension : lista_id ;
+    (13) cvars -> . empty
     (133) empty -> .
 
     DEF             reduce using rule 133 (empty -> .)
@@ -2937,8 +2926,8 @@ state 223
     IF              reduce using rule 133 (empty -> .)
     ID              reduce using rule 133 (empty -> .)
 
-    vars                           shift and go to state 241
-    empty                          shift and go to state 11
+    cvars                          shift and go to state 241
+    empty                          shift and go to state 40
 
 state 224
 
@@ -3138,7 +3127,7 @@ state 239
 
 state 240
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos . } f_endfunc
+    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos . } f_endfunc
     (47) estatutos -> estatutos . estatuto
     (49) estatuto -> . asignacion
     (50) estatuto -> . while
@@ -3168,14 +3157,13 @@ state 240
 
 state 241
 
-    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars . estatutos } f_endfunc
-    (24) vars -> vars . DEF tipo dimension : lista_id ;
-    (25) vars -> vars . DEF ID f_varsobj : lista_id_obj ;
+    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars . estatutos } f_endfunc
+    (12) cvars -> cvars . DEF tipo dimension : lista_id ;
     (47) estatutos -> . estatutos estatuto
     (48) estatutos -> . empty
     (133) empty -> .
 
-    DEF             shift and go to state 14
+    DEF             shift and go to state 50
     }               reduce using rule 133 (empty -> .)
     CALL            reduce using rule 133 (empty -> .)
     WHILE           reduce using rule 133 (empty -> .)
@@ -3319,7 +3307,7 @@ state 248
 
 state 249
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } . f_endfunc
+    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } . f_endfunc
     (23) f_endfunc -> .
 
     MAIN            reduce using rule 23 (f_endfunc -> .)
@@ -3330,7 +3318,7 @@ state 249
 
 state 250
 
-    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos . } f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos . } f_endfunc
     (47) estatutos -> estatutos . estatuto
     (49) estatuto -> . asignacion
     (50) estatuto -> . while
@@ -3483,16 +3471,16 @@ state 257
 
 state 258
 
-    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .
+    (18) funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc .
 
-    MAIN            reduce using rule 18 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
-    FUNC            reduce using rule 18 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
-    }               reduce using rule 18 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { vars estatutos } f_endfunc .)
+    MAIN            reduce using rule 18 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc .)
+    FUNC            reduce using rule 18 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc .)
+    }               reduce using rule 18 (funcion -> FUNC ID f_startfunc ( params ) : tipo f_tipofunc { cvars estatutos } f_endfunc .)
 
 
 state 259
 
-    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } . f_endfunc
+    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } . f_endfunc
     (23) f_endfunc -> .
 
     MAIN            reduce using rule 23 (f_endfunc -> .)
@@ -3611,11 +3599,11 @@ state 264
 
 state 265
 
-    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .
+    (19) funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc .
 
-    MAIN            reduce using rule 19 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
-    FUNC            reduce using rule 19 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
-    }               reduce using rule 19 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { vars estatutos } f_endfunc .)
+    MAIN            reduce using rule 19 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc .)
+    FUNC            reduce using rule 19 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc .)
+    }               reduce using rule 19 (funcion -> FUNC ID f_startfunc ( params ) : NOTHING f_nothing f_tipofunc { cvars estatutos } f_endfunc .)
 
 
 state 266
