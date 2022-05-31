@@ -390,7 +390,7 @@ def p_f_varsobj(p):
     if tipo == 5: # objeto
         curr_tipo = p[-1]
     else:
-        print("UNDECLARED OBJECT, line ", lexer.lineno)
+        print("ERROR: Undeclared object", p[-1], ", line:", lexer.lineno)
         found_error = True
     dimension = None
 
@@ -404,7 +404,7 @@ def p_f_vars(p):
     # Registro de variables
     if is_class: # se están declarando atributos de un objeto
         if not mem_available("objeto", curr_tipo):
-            print("MEMORIA GLOBAL LLENA")
+            print("ERROR: Stack overflow")
             found_error = True
 
         if curr_tipo == 0:
@@ -419,7 +419,7 @@ def p_f_vars(p):
 
     elif len(curr_func) == 1: # se están declarando variables globales
         if not mem_available("global", curr_tipo):
-            print("MEMORIA GLOBAL LLENA")
+            print("ERROR: Stack overflow")
             found_error = True
 
         if curr_tipo == 0:
@@ -433,7 +433,7 @@ def p_f_vars(p):
             add_memory("global", curr_tipo, dimension.get_size())
     else: # se están declarando variables dentro de una función
         if not mem_available("local", curr_tipo):
-            print("MEMORIA LOCAL LLENA")
+            print("ERROR: Stack overflow")
             found_error = True
 
         if curr_tipo == 0:
@@ -458,7 +458,7 @@ def p_f_vars_obj(p):
     obj_size = curr_dir[0].get_resources(curr_tipo) # obtiene los recursos del objeto
 
     if not mem_available("global", 0) or not mem_available("global", 1):
-        print("MEMORIA GLOBAL LLENA")
+        print("ERROR: Stack overflow")
         found_error = True
 
     curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, [dirGlobalNum, dirGlobalStr])
@@ -517,7 +517,7 @@ def p_pparams(p):
 def p_f_param(p):
     "f_param :"
     if not mem_available("local", curr_tipo):
-        print("MEMORIA LOCAL LLENA")
+        print("ERROR: Stack overflow")
         found_error = True
     
     # agrega los parámetros como variables locales
@@ -576,7 +576,7 @@ def p_f_verify_func(p):
     global found_error
     f_type, f_start = curr_dir[-1].get_func(p[-1]) # verifica que exista la funcion
     if f_type == -1:
-        print("UNDECLARED FUNCTION, line", lexer.lineno)
+        print("ERROR: Undeclared function", p[-1], ", line:", lexer.lineno)
         found_error = True
     else:
         function_call.append(p[-1])
@@ -600,7 +600,7 @@ def p_f_verify_func_composite(p):
     obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1]) # busca de qué tipo de objeto es la variable (busca en las variables globales)
 
     if obj_type == -1: # no está declarado ese objeto
-        print("ERROR: Undeclared object, line", lexer.lineno)
+        print("ERROR: Undeclared object,", check_obj[-1], ", line:", lexer.lineno)
         found_error = True
     else:
         obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
@@ -609,7 +609,7 @@ def p_f_verify_func_composite(p):
         function_call.append(p[-1])
 
         if f_type == -1:
-            print("UNDECLARED FUNCTION, line", lexer.lineno)
+            print("ERROR: Undefined function, line:", lexer.lineno)
             found_error = True
         else:
             param_list.append(obj_funcs.get_params(p[-1]))
@@ -635,20 +635,20 @@ def p_f_arg(p):
     param_count[-1] += 1
 
     if param_count[-1] > len(param_list[-1]):
-        print("ERROR: Too many arguments, line", lexer.lineno)
+        print("ERROR: Too many arguments, line:", lexer.lineno)
         found_error = True
     else:
         if arg_type == param_list[-1][param_count[-1] - 1]: # checa que sean del mismo tipo
             cuadruplos.add("PARAMETER", arg, param_count[-1], -1)
         else:
-            print("ERROR: Wrong argument type, line", lexer.lineno, ". Argument", param_count[-1])
+            print("ERROR: Wrong argument type, line:", lexer.lineno, ". Argument number", param_count[-1])
             found_error = True
 
 def p_f_end_args(p):
     "f_end_args :"
     global found_error
     if param_count[-1] < len(param_list[-1]):
-        print("ERROR: Missing arguments, line", lexer.lineno)
+        print("ERROR: Missing arguments, line:", lexer.lineno)
         found_error = True
     else:
         param_list.pop()
@@ -659,7 +659,7 @@ def p_asignacion(p):
     if cubo.check("=", pilaTipos.pop(), pilaTipos.pop()) != -1:
         cuadruplos.add(pilaOperadores.pop(), pilaOperandos.pop(), -1, pilaOperandos.pop())
     else:
-        print("ERROR: type mismatch, line", lexer.lineno)
+        print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_var(p):
     '''var : ID f_varobj ':' ID f_verify_type_composite indexacion f_end_check
@@ -690,7 +690,7 @@ def p_f_verify_type(p):
             var_type, var_mem = curr_dir[0].get_var(curr_func[-2], p[-1])
              
         if var_type == -1:
-            print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno) # local
+            print("ERROR: Undeclared variable", p[-1], ", line:", lexer.lineno) # local
             found_error = True
         else:
             pilaOperandos.append(var_mem)
@@ -717,7 +717,7 @@ def p_f_verify_type_composite(p):
         real_mem = obj_mem[1] + (var_mem - 3000)
 
     if var_type == -1:
-        print("UNDECLARED VARIABLE", p[-1], ", line:", lexer.lineno)
+        print("ERROR: Undeclared variable", p[-1], ", line:", lexer.lineno)
         found_error = True
     else:
         pilaOperandos.append(real_mem)
@@ -727,14 +727,14 @@ def p_f_no_index(p):
     "f_no_index :"
     global found_error
     if has_dim: # habia dimensiones pero no se indexó nada
-        print("ERROR: indexable variable, line", lexer.lineno)
+        print("ERROR: indexable variable, line:", lexer.lineno)
         found_error = True
 
 def p_f_start_array(p):
     "f_start_array :"
     global dim, found_error
     if not has_dim: # se intentó indexar
-        print("Error: variable not indexable, line", lexer.lineno)
+        print("ERROR: variable not indexable, line:", lexer.lineno)
         found_error = True
     else:
         arr = pilaOperandos.pop()
@@ -786,7 +786,7 @@ def p_f_end_array(p):
     num_dims = pilaDim[-1][0].get_num_dims()
 
     if pilaDim[-1][1] < num_dims:
-        print("ERROR: missing indexes, line", lexer.lineno)
+        print("ERROR: Missing indexes, line:", lexer.lineno)
         found_error = True
 
     aux1 = pilaOperandos.pop()
@@ -831,11 +831,11 @@ def p_f_expres(p):
         tres = cubo.check(oper, lt, rt)
 
     if tres == -1:
-        print("ERROR: Type Mismatch")
+        print("ERROR: Type mismatch, line:", lexer.lineno)
         found_error = True
     else:
         if not mem_available("temp", tres):
-            print("MEMORIA TEMPORAL LLENA")
+            print("ERROR: Stack overflow")
         res = dirTempBool
         add_memory("temp", tres, 1)
         cuadruplos.add(oper, lo, ro, res)
@@ -860,11 +860,11 @@ def p_f_exp(p):
         tres = cubo.check(oper, rt, lt)
 
         if tres == -1:
-            print("ERROR: Type Mismatch")
+            print("ERROR: Type mismatch, line:", lexer.lineno)
             found_error = True
         else:
             if not mem_available("temp", tres):
-                print("MEMORIA TEMPORAL LLENA")
+                print("ERROR: Stack overflow")
             res = dirTempNum
             add_memory("temp", tres, 1)
             cuadruplos.add(oper, lo, ro, res)
@@ -889,11 +889,11 @@ def p_f_term(p):
         tres = cubo.check(oper, rt, lt)
 
         if tres == -1:
-            print("ERROR: Type Mismatch")
+            print("ERROR: Type mismatch, line:", lexer.lineno)
             found_error = True
         else:
             if not mem_available("temp", tres):
-                print("MEMORIA TEMPORAL LLENA")
+                print("ERROR: Stack overflow")
             res = dirTempNum
             add_memory("temp", 0, 1)
             cuadruplos.add(oper, lo, ro, res)
@@ -912,6 +912,7 @@ def p_fact(p):
             | NUM f_fact
             | OPTERM NUM
             | CALL func f_return_val f_end_call f_end_check
+            | CALL to_num
             | STR f_string 
             | fact '&' f_oper var f_concat
             | fact '&' f_oper STR f_string f_concat '''
@@ -938,11 +939,11 @@ def p_f_concat(p):
         tres = cubo.check(oper, rt, lt)
 
         if tres == -1:
-            print("ERROR: Type Mismatch")
+            print("ERROR: Type mismatch, line:", lexer.lineno)
             found_error = True
         else:
             if not mem_available("temp", tres):
-                print("MEMORIA TEMPORAL LLENA")
+                print("ERROR: Stack overflow")
             res = dirTempStr
             add_memory("temp", 1, 1)
             cuadruplos.add(oper, lo, ro, res)
@@ -985,7 +986,7 @@ def p_f_return_val(p):
             ret_type, ret_mem = curr_dir[-1].get_return_value(curr_func[0], func_name)
 
     if ret_type == -1:
-        print("ERROR, No return value, line", lexer.lineno)
+        print("ERROR: No return value, line", lexer.lineno)
     else:
         pilaOperandos.append(ret_mem)
         pilaTipos.append(ret_type)
@@ -1005,7 +1006,7 @@ def p_f_if(p):
         cuadruplos.add("GOTOF", res, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1)
     else:
-        print("ERROR: Type mismatch, line", lexer.lineno)
+        print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_f_endif(p):
     "f_endif :"
@@ -1034,7 +1035,7 @@ def p_f_exprwhile(p):
         cuadruplos.add("GOTOF", res, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1)
     else:
-        print("ERROR: Type mismatch, line", lexer.lineno)
+        print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_f_endwhile(p):
     "f_endwhile :"
@@ -1054,7 +1055,7 @@ def p_f_for_start(p):
         var_ctrl = pilaOperandos.pop()
     else:
         found_error = True
-        print("ERROR: Type mismatch, line", lexer.lineno)
+        print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_f_for_to(p):
     "f_for_to :"
@@ -1070,7 +1071,7 @@ def p_f_for_to(p):
         add_memory("temp", 3, 1)
     else:
         found_error = True
-        print("ERROR: Type mismatch, line", lexer.lineno)
+        print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_f_for_end(p):
     "f_for_end :" 
@@ -1095,7 +1096,7 @@ def p_to_num(p):
         pilaTipos.append(0)
         add_memory("temp", 0, 1)
     else:
-        print("ERROR: Type Mismatch")
+        print("ERROR: Type mismatch, line:", lexer.lineno)
         found_error = True
 
 def p_to_str(p):
@@ -1108,12 +1109,15 @@ def p_to_str(p):
         pilaTipos.append(1)
         add_memory("temp", 1, 1)
     else:
-        print("ERROR: Type Mismatch")
+        print("ERROR: Type mismatch, line:", lexer.lineno)
         found_error = True
 
 def p_input(p):
     '''input : INPUT '(' var ')' '''
-    cuadruplos.add("READ", -1, -1, pilaOperandos.pop())
+    if pilaTipos.pop() == 1:
+        cuadruplos.add("READ", -1, -1, pilaOperandos.pop())
+    else:
+        print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_write(p):
     '''write : PRINT '(' write_list ')' '''
@@ -1129,7 +1133,7 @@ def p_write_listp(p):
     if pilaTipos.pop() == 1:
         cuadruplos.add("PRINT", -1, -1, pilaOperandos.pop())
     else:
-        print("type mismatch")
+        print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_f_string(p):
     "f_string :"
@@ -1155,7 +1159,7 @@ def p_return(p):
                 cuadruplos.add("RET", res, -1, -1) # asigna el valor de retorno a la variable a la que apunta dirTempPoint
                 
             else:
-                print("ERROR: memoria llena")
+                print("ERROR: Stack overflow")
                 found_error = True
         else:
             if res_type == 0 and mem_available("global", res_type):
@@ -1163,11 +1167,11 @@ def p_return(p):
             elif res_type == 1 and mem_available("global", res_type):
                 cuadruplos.add("RET", res, -1, -1) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
             else:
-                print("ERROR: memoria global llena")
+                print("ERROR: Stack overflow")
                 found_error = True
                 
     else:
-        print("ERROR: Type Mismatch, line", lexer.lineno)
+        print("ERROR: Type mismatch, line:", lexer.lineno)
         found_error = True
 
 def p_empty(p):
@@ -1179,7 +1183,7 @@ def p_error(p):
     global found_error
     found_error = True
     if p:
-         print("Syntax error at token", p.type, "line", p.lineno)
+         print("Syntax error at token", p.type, ", line:", p.lineno)
          parser.errok()
     else:
          print("Syntax error at EOF")

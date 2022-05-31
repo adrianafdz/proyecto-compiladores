@@ -1,11 +1,12 @@
 program prueba5;
 
-def string : s;
+def string : s, m;
 def number : x;
 
 main() {
-    s = "hola" & "adios";
-    call print(s & call to_string(x) );
+    s = "2" & "adios" & m;
+    call input(s);
+    x = call to_number(s);
 }
 
 end;
