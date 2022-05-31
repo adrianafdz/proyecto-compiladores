@@ -1,9 +1,9 @@
 ###------------------
 #   DimStructure
-#   Clase para el de dimensiones de arreglos y matrices
+#   Clase para las dimensiones de arreglos y matrices
 #
 #   Hace los cálculos necesarios para obtener su tamaño 
-#   y para hacer las operaciones al momento de indexar
+#   y para hacer las operaciones correspondientes al momento de indexar
 ###------------------
 
 class DimStructure:

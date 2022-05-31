@@ -6,7 +6,9 @@
 #   - tipo de la variable 
 #   - dimension de la variable (de tipo dimStructure)
 #   - dirección de memoria
+#   - valor: valor de la constante (esto solo se utiliza para las constantes)
 #
+#   Esta clase se utiliza para el directorio de funciones y para almacenar constantes
 ###------------------
 
 class tablaVars:
@@ -21,7 +23,7 @@ class tablaVars:
         return nombre in self.tabla_vars.keys()
 
     # Agregar una variable a la tabla de variables
-    def add_var(self, nombre, tipo, dimension, memoria):
+    def add_var(self, nombre, tipo, dimension, memoria, cte = False):
         if self.check_var(nombre):
             print("Error: la variable", str(nombre), "ya existe")
             return False
@@ -82,3 +84,12 @@ class tablaVars:
                 output += '\t\t' + str(key2) + ' : ' + str(value2) + '\n'
             output += '\t } \n'
         return output
+
+    # Transforma la tabla de variables, cambiando la llave a la dirección de memoria
+    # esto para facilitar su búsqueda en la máquina virtual
+    def transform(self):
+        new_table = {}
+        for key1, value1 in self.tabla_vars.items():
+            new_table[value1['memoria']] = value1
+
+        self.tabla_vars = new_table

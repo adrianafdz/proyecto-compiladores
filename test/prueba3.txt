@@ -18,12 +18,11 @@ def number : n, p;
 def objeto : o, r;
 
 func f2(number a): number {
-    a = call f2(a);
-    call ret(2);
+    call ret( call f2(2) );
 }
 
 main() {
-    n = call ol:f2( p );
+    n = call o:f2( p );
 }
 
 end;

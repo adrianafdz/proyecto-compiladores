@@ -258,6 +258,7 @@ def p_f_end(p):
 
     curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPointNum, recPointStr])
     # print(curr_dir[-1])
+    constantes.transform()
     # print(constantes)
     curr_dir[-1].delete_dir() # elimina el directorio de funciones
     curr_func.pop() # quita el programa principal de la pila
