@@ -70,7 +70,7 @@ class cuboSemantico:
                             ]
 
     def check(self, op, t1, t2):
-        if t1 == 7 or t2 == 7: # uno es nothing, no se pueden hacer operaciones
+        if t1 == 7 or t2 == 7: # uno es de tipo nothing, no se pueden hacer operaciones
             return -1
             
         return self.cuboSeman[t1][t2][self.operadores[op]]

@@ -41,8 +41,8 @@ check_obj = deque()
 param_list = deque()
 param_count = deque()
 
-tipos = [0, 1, 2, 3, 4, 5, 6, 7] # number, string, bool, pointernum, pointerstr, objeto, nothing
-curr_tipo = 7
+tipos = [0, 1, 2, 3, 4, 5, 6 ] # number, string, bool, pointernum, pointerstr, objeto, nothing
+curr_tipo = 6
 dimension = None
 dim1 = None
 dim2 = None
@@ -329,7 +329,7 @@ def p_f_startfunc(p):
 def p_f_nothing(p):
     "f_nothing :"
     global curr_tipo
-    curr_tipo = 7
+    curr_tipo = 6
 
 def p_f_tipofunc(p):
     "f_tipofunc :"

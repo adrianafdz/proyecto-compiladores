@@ -4,10 +4,11 @@
 #   Los atributos semánticos que contiene son:
 #   - nombre de la funcion
 #   - tipo
-#   - starts (en qué cuádruplo empieza)
+#   - inicio (en qué cuádruplo empieza)
 #   - recursos (tamaño de memoria que ocupa)
 #   - tabla de variables
 #   - lista de tipos de los parámetros
+#   - directorio de funciones (para las clases)
 #
 ###------------------
 
@@ -19,7 +20,9 @@ class dirFunc:
     def __init__(self, funcs = {}):
         self.dir_func = funcs.copy()
 
-    def add_func(self, nombre, cuadStart, tipo = 2):
+    # Registrar en el directorio una función de tipo 'tipo' que comienza en el cuadruplo cuadStart
+    # si no se indica un tipo, se guarda como tipo nothing
+    def add_func(self, nombre, cuadStart, tipo = 7):
         if nombre not in self.dir_func:
             self.dir_func[nombre] = {
                 'tipo': tipo,
@@ -32,13 +35,15 @@ class dirFunc:
             return False
         return True
 
-    def get_func(self, nombre): # regresa tipo y en qué cuadruplo empieza
+    # Función que busca una función y regresa su tipo y en qué cuádruplo empieza
+    def get_func(self, nombre):
         if nombre in self.dir_func:
             return (self.dir_func[nombre]['tipo'], self.dir_func[nombre]['inicio'])
         else:
             print("Error: la funcion", str(nombre), "no existe")
             return (-1, -1)
 
+    # Actualiza el tipo de una función (porque las funciones primero se dan de alta y luego se encuentra el tipo)
     def update_func_type(self, nombre, tipo):
         if nombre in self.dir_func:
             self.dir_func[nombre]['tipo'] = tipo
@@ -47,6 +52,7 @@ class dirFunc:
             return False
         return True
 
+    # Al terminar de compilar una función se registran cuántos recursos utilizó
     def add_resources(self, nombre, cantidades):
         if nombre in self.dir_func:
             self.dir_func[nombre]['recursos'] = cantidades # [Num, Str, Bool, Pt]
@@ -55,6 +61,11 @@ class dirFunc:
             return False
         return True
 
+    # Agregar una variable a la tabla de variables de la función func
+    # nombre: nombre de la variable
+    # tipo: tipo de la variable
+    # dimension: None o dimStructure ya solucionada
+    # memoria: dirección
     def add_var(self, func, nombre, tipo, dimension, memoria):
         if nombre not in self.dir_func:
             self.dir_func[func]['vars'].add_var(nombre, tipo, dimension, memoria)
@@ -63,16 +74,21 @@ class dirFunc:
             return False
         return True
 
+    # Obtiene una variable de la función func
+    # regresa el tipo y la direccion de memoria
     def get_var(self, func, nombre):
-        # regresa el tipo y la direccion de memoria
         return self.dir_func[func]['vars'].get_var(nombre) 
 
+    # Agrega una nueva variable para manejar los retornos de las funciones
+    # (no se utiliza la función add_var porque esa checa que no exista una función con el mismo nombre)
     def add_return_value(self, func, nombre, tipo, memoria):
         return self.dir_func[func]['vars'].add_return_value(nombre, tipo, memoria)
 
+    # Regresa el tipo y la dirección del registro donde almacena la variable de retorno de la función func
     def get_return_value(self, func, nombre):
         return self.dir_func[func]['vars'].get_return_value(nombre)
 
+    # Registra un parámetro de tipo 'tipo' para la función 'func'
     def add_param(self, func, tipo):
         if 'params_count' not in self.dir_func[func]:
             self.dir_func[func]['params'] = [tipo]
@@ -81,14 +97,17 @@ class dirFunc:
             self.dir_func[func]['params'].append(tipo)
             self.dir_func[func]['params_count'] += 1
 
+    # (las clases se registran en el directorio de funciones principal)
+    # Crear un directorio de funciones para la clase 'nombre'
     def create_dir_for_obj(self, nombre):
-        if nombre in self.dir_func:
+        if nombre in self.dir_func and self.dir_func[nombre]['tipo'] == 5:
             self.dir_func[nombre]['funcs'] = dirFunc()
             return self.dir_func[nombre]['funcs']
         else:
             print("Error: el objeto", str(nombre), "no existe")
             return None
 
+    # Obtiene la tabla de variables de la clase 'nombre'
     def get_vars_from_obj(self, nombre):
         if nombre in self.dir_func:
             return self.dir_func[nombre]['vars']
@@ -96,6 +115,7 @@ class dirFunc:
             print("Error: el objeto", str(nombre), "no existe")
             return None
 
+    # Obtiene el directorio de funciones de la clase 'nombre'
     def get_dir_from_obj(self, nombre):
         if nombre in self.dir_func:
             return self.dir_func[nombre]['funcs']
@@ -103,6 +123,7 @@ class dirFunc:
             print("Error: el objeto", str(nombre), "no existe")
             return None
 
+    # Obtiene la cantidad de recursos de la función o clase 'nombre'
     def get_resources(self, nombre):
         if nombre in self.dir_func:
             return self.dir_func[nombre]['recursos']
@@ -110,6 +131,7 @@ class dirFunc:
             print("Error:", str(nombre), "no existe")
             return None
 
+    # Obtiene la lista de parámetros de una función
     def get_params(self, nombre):
         if nombre in self.dir_func:
             return self.dir_func[nombre]['params']
@@ -117,6 +139,7 @@ class dirFunc:
             print("Error: la función", str(nombre), "no existe")
             return None
 
+    # Copia el directorio de funciones de la clase padre a la clase hijo
     def copy_class_to(self, padre, hijo):
         p = self.dir_func[padre]
         if padre in self.dir_func:
@@ -139,18 +162,23 @@ class dirFunc:
             print("Error: no existe la clase", str(padre))
             return False
             
+    # Obtiene la dimensión de una variable, ya se None o una instancia de dimStructure
     def get_dim(self, func, nombre):
         return self.dir_func[func]['vars'].get_dim(nombre)
 
+    # Elimina el registro de la función 'nombre'
     def delete_func(self, nombre):
         del self.dir_func[nombre]
 
+    # Elimina la tabla de variables de la función 'nombre'
     def delete_var_table(self, nombre):
         del self.dir_func[nombre]['vars']
 
+    # Elimina el directorio de funciones
     def delete_dir(self):
         self.dir_func = {}
 
+    # Imprimir directorio de funciones
     def __str__(self):
         output = ""
         for key1, value1 in self.dir_func.items():
