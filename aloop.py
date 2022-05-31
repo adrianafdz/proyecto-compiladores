@@ -60,21 +60,25 @@ constantes = tablaVars()
 dirFuncG = None # directorio de funciones global
 dirFuncObj = None # directorio de funciones de un objeto
 
-def add_constante(value, tipo):
-    if not constantes.check_var(value):
-        if tipo == 0:
+# Función que regresa la dirección de la constante value de tipo tipo type
+def get_constante(value, type):
+    if not constantes.check_var(value): # revisa si ya está registrada
+        # si no, la registra con su nombre y tipo
+        if type == 0:
             constantes.add_var(value, 0, None, dirConstNum)
             const_mem = dirConstNum
-            add_memory("constantes", 0, 1)
-        elif tipo == 1:
+            add_memory("constantes", 0, 1) # actualiza el contador de constantes
+        elif type == 1:
             constantes.add_var(value, 1, None, dirConstStr)
             const_mem = dirConstStr
             add_memory("constantes", 1, 1)
     else:
+        # ya está registrada, así que solo la busca
         const_tipo, const_mem = constantes.get_var(value)
 
     return const_mem
 
+# Función que devuelve un booleano que indica si ya se acabaron los registros según el tipo y el scope
 def mem_available(scope, tipo):
     if scope == 'global':
         if tipo == 0: # number
@@ -109,6 +113,7 @@ def mem_available(scope, tipo):
             return dirObjStr <= 4999
     return False
 
+# Función para ir aumentando los contadores de las direcciones de memoria según el tipo y scope
 def add_memory(scope, tipo, cant):
     global dirGlobalNum, dirGlobalStr, dirLocalNum, dirLocalStr, dirTempNum, dirTempStr, dirTempBool, dirTempPointNum, dirTempPointStr, dirConstNum, dirConstStr, dirObjNum, dirObjStr
     if scope == 'global':
@@ -155,6 +160,7 @@ tokens = [
    'OPFACT'
 ]
 
+# palabras reservadas
 reserved = {
     'program' : 'PROGRAM',
     'main' : 'MAIN',
@@ -191,7 +197,7 @@ t_OPFACT = r'\*|\/'
 t_STR = r'".*"'
 
 def t_ID(t):
-    r'[a-zA-Z_][a-zA-Z_0-9]*'
+    r'[a-zA-Z][a-zA-Z_0-9]*'
     t.type = reserved.get(t.value,'ID')    # Check for reserved words
     return t
 
@@ -220,29 +226,30 @@ def t_eof(t):
 ####################################################
 # YACC (parser)
 
+# Inicio del lenguaje, estructura general
 def p_start(p):
     '''start : PROGRAM f_start ID f_prog ';' clases vars funciones MAIN f_main '(' ')' '{' estatutos '}' END f_end ';' '''
 
 def p_f_start(p):
     "f_start :"
     global dirFuncG
-    dirFuncG = dirFunc()
-    curr_dir.append(dirFuncG)
-    pilaSaltos.append(cuadruplos.get_cont())
-    cuadruplos.add("GOTO", -1, -1, -1)
+    dirFuncG = dirFunc() # crea el directorio de funciones
+    curr_dir.append(dirFuncG) # lo agrega al stack de directorios
+    cuadruplos.add("GOTO", -1, -1, -1) # genera el primer cuadruplo GOTO main
+    pilaSaltos.append(cuadruplos.get_cont()) # guarda el cuadruplo para rellenarlo después
 
 def p_f_prog(p):
     "f_prog :"
-    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), curr_tipo)
-    curr_func.append(p[-1])
+    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), curr_tipo) # agrega el nombre del programa al directorio de funciones
+    curr_func.append(p[-1]) # agrega el nombre del programa a la pila de funciones, la cual lleva registro de qué función se está compilando
 
 def p_f_main(p):
     "f_main :"
-    cuadruplos.fill(pilaSaltos.pop(), cuadruplos.get_cont())
+    cuadruplos.fill(pilaSaltos.pop(), cuadruplos.get_cont()) # rellena el primer GOTO con el cuádruplo donde empieza el programa principal
 
 def p_f_end(p):
     "f_end : "
-    # CALCULAR RECURSOS
+    # Calcula recursos del main, acumulando globales y temporales
     recNum = dirGlobalNum + (dirTempNum - 10000)
     recStr = dirGlobalStr - 3000 + (dirTempStr - 13000)
     recBool = dirTempBool - 14000
@@ -252,8 +259,8 @@ def p_f_end(p):
     curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPointNum, recPointStr])
     # print(curr_dir[-1])
     # print(constantes)
-    curr_dir[-1].delete_dir()
-    curr_func.pop()
+    curr_dir[-1].delete_dir() # elimina el directorio de funciones
+    curr_func.pop() # quita el programa principal de la pila
 
 def p_clases(p):
     '''clases : clases clase
@@ -266,19 +273,24 @@ def p_clase(p):
 def p_f_startclass(p):
     "f_startclass :"
     global dirFuncObj, is_class
-    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), 5)
+    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), 5) # agrega el registro del objeto al directorio de funciones
     curr_func.append(p[-1])
-    dirFuncObj = curr_dir[-1].create_dir_for_obj(curr_func[-1])
+    dirFuncObj = curr_dir[-1].create_dir_for_obj(curr_func[-1]) # crea un directorio de funciones para el objeto
     is_class = True
 
 def p_f_clasepadre(p):
     "f_clasepadre :"
     global dirFuncObj
-    curr_dir[-1].copy_class_to(p[-1], curr_func[-1])
-    rec = curr_dir[-1].get_resources(curr_func[-1])
+    curr_dir[-1].copy_class_to(p[-1], curr_func[-1]) # copia todo el contenido del objeto padre
+    rec = curr_dir[-1].get_resources(curr_func[-1]) # obtiene sus recursos para así seguir registrando a partir de los que ya se crearon
     dirFuncObj = curr_dir[-1].get_dir_from_obj(curr_func[-1])
-    add_memory("objeto", 0, rec[0])
+    add_memory("objeto", 0, rec[0]) # actualiza los contadores según los recursos
     add_memory("objeto", 1, rec[1])
+
+# Declaración de variables dentro una clase o función (no permite declarar objetos)
+def p_cvars(p):
+    '''cvars : cvars DEF tipo dimension ':' lista_id ';'
+             | empty'''
 
 def p_f_cvars(p):
     "f_cvars :"
@@ -289,6 +301,7 @@ def p_f_cvars(p):
 def p_f_endclass(p):
     "f_endclass :"
     global dirObjNum, dirObjStr
+    # Calcula los recursos de la clase
     recNum = dirObjNum
     recStr = dirObjStr - 3000
 
@@ -296,6 +309,7 @@ def p_f_endclass(p):
     curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, 0, 0])
     curr_func.pop()
 
+    # reestablece los contadores
     dirObjNum = 0
     dirObjStr = 3000
 
@@ -309,7 +323,7 @@ def p_funcion(p):
 
 def p_f_startfunc(p):
     "f_startfunc :"
-    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont())
+    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont()) # registra la función y en qué cuádruplo comienza
     curr_func.append(p[-1])
 
 def p_f_nothing(p):
@@ -321,7 +335,7 @@ def p_f_tipofunc(p):
     "f_tipofunc :"
     curr_dir[-1].update_func_type(curr_func[-1], curr_tipo)
 
-    if len(curr_func) > 2: # metodo en un objeto
+    if len(curr_func) > 2: # se trata de metodo en un objeto
         if curr_tipo == 0:
             curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirObjNum)
         else:
@@ -340,7 +354,7 @@ def p_f_endfunc(p):
     "f_endfunc :"
     global dirLocalNum, dirLocalStr, dirTempNum, dirTempStr, dirTempBool, dirTempPointNum, dirTempPointStr
     curr_dir[-1].delete_var_table(curr_func[-1])
-    # CALCULAR RECURSOS
+    # Calcula los recursos de la función según los registros locales y temporales
     recNum = dirLocalNum - 5000 + (dirTempNum - 10000)
     recStr = dirLocalStr - 8000 + (dirTempStr - 13000)
     recBool = 0
@@ -352,15 +366,16 @@ def p_f_endfunc(p):
 
     cuadruplos.add("ENDFUNC", -1, -1, -1) # cuadruplo para regresar al programa principal
 
+    # reestablece los contadores
     dirLocalNum = 5000
     dirLocalStr = 8000
-
     dirTempNum = 10000
     dirTempStr = 13000
     dirTempBool = 14000
     dirTempPointNum = 15000 
     dirTempPointStr = 16000
 
+# Declaración de variables globales (permite objetos)
 def p_vars(p):
     '''vars : vars DEF tipo dimension ':' lista_id ';'
             | vars DEF ID f_varsobj ':' lista_id_obj ';'
@@ -369,7 +384,7 @@ def p_vars(p):
 def p_f_varsobj(p):
     "f_varsobj :"
     global curr_tipo, dimension, found_error
-    tipo, mem = curr_dir[0].get_func(p[-1])
+    tipo, mem = curr_dir[0].get_func(p[-1]) # revisa que exista ese id y que sí sea un objeto
     
     if tipo == 5: # objeto
         curr_tipo = p[-1]
@@ -378,10 +393,6 @@ def p_f_varsobj(p):
         found_error = True
     dimension = None
 
-def p_cvars(p):
-    '''cvars : cvars DEF tipo dimension ':' lista_id ';'
-             | empty'''
-
 def p_lista_id(p): 
     '''lista_id : ID f_vars
                 | lista_id ',' ID f_vars'''
@@ -389,7 +400,8 @@ def p_lista_id(p):
 def p_f_vars(p):
     "f_vars :"
     global dimension, found_error
-    if is_class:
+    # Registro de variables
+    if is_class: # se están declarando atributos de un objeto
         if not mem_available("objeto", curr_tipo):
             print("MEMORIA GLOBAL LLENA")
             found_error = True
@@ -401,10 +413,10 @@ def p_f_vars(p):
 
         if dimension is None:
             add_memory("objeto", curr_tipo, 1)
-        else:
+        else: # se declara un arreglo
             add_memory("objeto", curr_tipo, dimension.get_size())
 
-    elif len(curr_func) == 1: # esta en variables globales
+    elif len(curr_func) == 1: # se están declarando variables globales
         if not mem_available("global", curr_tipo):
             print("MEMORIA GLOBAL LLENA")
             found_error = True
@@ -418,7 +430,7 @@ def p_f_vars(p):
             add_memory("global", curr_tipo, 1)
         else:
             add_memory("global", curr_tipo, dimension.get_size())
-    else:
+    else: # se están declarando variables dentro de una función
         if not mem_available("local", curr_tipo):
             print("MEMORIA LOCAL LLENA")
             found_error = True
@@ -442,32 +454,24 @@ def p_lista_id_obj(p):
 def p_f_vars_obj(p):
     "f_vars_obj :"
     global found_error, dimension
-    obj_size = curr_dir[0].get_resources(curr_tipo)
+    obj_size = curr_dir[0].get_resources(curr_tipo) # obtiene los recursos del objeto
 
-    if len(curr_func) == 1: # esta en variables globales
-        if not mem_available("global", 0) or not mem_available("global", 1):
-            print("MEMORIA GLOBAL LLENA")
-            found_error = True
+    if not mem_available("global", 0) or not mem_available("global", 1):
+        print("MEMORIA GLOBAL LLENA")
+        found_error = True
 
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, [dirGlobalNum, dirGlobalStr])
+    curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, [dirGlobalNum, dirGlobalStr])
 
-        add_memory("global", 0, obj_size[0])
-        add_memory("global", 1, obj_size[1])
-    else:
-        if not mem_available("local", 0) or not mem_available("local", 1):
-            print("MEMORIA LOCAL LLENA")
-            found_error = True
-
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, [dirLocalNum, dirLocalStr])
-        
-        add_memory("local", 0, obj_size[0])
-        add_memory("local", 1, obj_size[1])
+    # toma todas los registros que ocupa segun los recursos
+    add_memory("global", 0, obj_size[0])
+    add_memory("global", 1, obj_size[1])
 
     dimension = None
 
+# Dimensiones al momento de declarar un arreglo o matriz
 def p_dimension(p): 
-    '''dimension : '[' NUM f_dim1 ']' f_onedim
-                 | '[' NUM f_dim1 ']' '[' NUM f_dim2 ']' f_twodim
+    '''dimension : '[' NUM f_dim1 ']' f_enddim
+                 | '[' NUM f_dim1 ']' '[' NUM f_dim2 ']' f_enddim
                  | empty'''
 
 def p_f_dim1(p):
@@ -485,15 +489,8 @@ def p_f_dim2(p):
 
     dimension.add_upper_lim(dim2)
 
-def p_f_onedim(p):
-    "f_onedim :"
-    global dimension, dim1, dim2
-    dim1 = None
-    dim2 = None
-    dimension.solve()
-
-def p_f_twodim(p):
-    "f_twodim :"
+def p_f_enddim(p):
+    "f_enddim :"
     global dimension, dim1, dim2
     dim1 = None
     dim2 = None
@@ -522,12 +519,14 @@ def p_f_param(p):
         print("MEMORIA LOCAL LLENA")
         found_error = True
     
+    # agrega los parámetros como variables locales
     if curr_tipo == 0:
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalNum)
     elif curr_tipo == 1:
         curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalStr)
     
     add_memory("local", curr_tipo, 1)
+    # registra el tipo para poder validar los parametros después
     curr_dir[-1].add_param(curr_func[-1], curr_tipo)
 
 def p_estatutos(p):
@@ -553,12 +552,18 @@ def p_f_end_call(p):
     "f_end_call :"
     if check_obj[-1] is None:
         f_type, f_start = curr_dir[-1].get_func(function_call[-1])
-        cuadruplos.add("GOSUB", function_call[-1], -1, f_start)
-    else:
+
+        if len(curr_func) > 2: # se está llamando a un metodo desde otro método de un objeto
+            cuadruplos.add("GOSUB", function_call[-1], curr_func[-2], f_start)
+        else:
+            cuadruplos.add("GOSUB", function_call[-1], -1, f_start)
+
+    else: # se llama a una función miembro de un objeto
         obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1]) # busca de qué tipo de objeto es la variable (busca en las variables globales)
         obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
         f_type, f_start = obj_funcs.get_func(function_call[-1])
         cuadruplos.add("GOSUB", function_call[-1], obj_type, f_start)
+
     function_call.pop()
 
 def p_func(p):
@@ -568,7 +573,7 @@ def p_func(p):
 def p_f_verify_func(p):
     "f_verify_func :"
     global found_error
-    f_type, f_start = curr_dir[-1].get_func(p[-1])
+    f_type, f_start = curr_dir[-1].get_func(p[-1]) # verifica que exista la funcion
     if f_type == -1:
         print("UNDECLARED FUNCTION, line", lexer.lineno)
         found_error = True
@@ -578,29 +583,38 @@ def p_f_verify_func(p):
         param_list.append(curr_dir[-1].get_params(p[-1]))
         param_count.append(0)
 
-        if len(curr_func) > 2: # esta en un objeto
+        if len(curr_func) > 2: # está llamando a un método desde otro método de un objeto
             cuadruplos.add("ERA", p[-1], curr_func[-2], -1)
         else:
             cuadruplos.add("ERA", p[-1], -1, -1)
+
+def p_f_varobj(p):
+    "f_varobj :"
+    check_obj.append(p[-1]) # lleva registro de a qué objeto se está accediendo
 
 def p_f_verify_func_composite(p):
     "f_verify_func_composite :"
     global found_error
     
     obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1]) # busca de qué tipo de objeto es la variable (busca en las variables globales)
-    obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
 
-    f_type, f_start = obj_funcs.get_func(p[-1])
-    function_call.append(p[-1])
-
-    if f_type == -1:
-        print("UNDECLARED FUNCTION, line", lexer.lineno)
+    if obj_type == -1: # no está declarado ese objeto
+        print("ERROR: Undeclared object, line", lexer.lineno)
         found_error = True
     else:
-        param_list.append(obj_funcs.get_params(p[-1]))
-        cuadruplos.add("ERA", p[-1], obj_type, -1)
-        cuadruplos.add("OBJREF", obj_mem[0], obj_mem[1], -1) # manda una referencia de la dirección del objeto por si se modifica
-        param_count.append(0)
+        obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
+
+        f_type, f_start = obj_funcs.get_func(p[-1])
+        function_call.append(p[-1])
+
+        if f_type == -1:
+            print("UNDECLARED FUNCTION, line", lexer.lineno)
+            found_error = True
+        else:
+            param_list.append(obj_funcs.get_params(p[-1]))
+            cuadruplos.add("ERA", p[-1], obj_type, -1)
+            cuadruplos.add("OBJREF", obj_mem[0], obj_mem[1], -1) # manda una referencia de la dirección del objeto por si se modifica
+            param_count.append(0)
 
 def p_args(p):
     '''args : args_list f_end_args
@@ -623,7 +637,7 @@ def p_f_arg(p):
         print("ERROR: Too many arguments, line", lexer.lineno)
         found_error = True
     else:
-        if arg_type == param_list[-1][param_count[-1] - 1]:
+        if arg_type == param_list[-1][param_count[-1] - 1]: # checa que sean del mismo tipo
             cuadruplos.add("PARAMETER", arg, param_count[-1], -1)
         else:
             print("ERROR: Wrong argument type, line", lexer.lineno, ". Argument", param_count[-1])
@@ -650,18 +664,15 @@ def p_var(p):
     '''var : ID f_varobj ':' ID f_verify_type_composite indexacion f_end_check
            | ID f_verify_type indexacion f_end_check'''
 
+# Dimensiones al indexar un arreglo o matriz
 def p_indexacion(p):
     '''indexacion : f_start_array '[' expresion f_index ']' f_end_array
                  | f_start_array '[' expresion f_index ']' '[' f_next_index expresion f_index ']' f_end_array
                  | f_no_index empty'''
 
-def p_f_varobj(p):
-    "f_varobj :"
-    check_obj.append(p[-1])
-
 def p_f_end_check(p):
     "f_end_check :"
-    check_obj.pop()
+    check_obj.pop() # Termina de usar un método o variable que es miembro de un objeto
 
 def p_f_verify_type(p):
     "f_verify_type :"
@@ -670,7 +681,7 @@ def p_f_verify_type(p):
     check_obj.append(None)
 
     var_type, var_mem = curr_dir[-1].get_var(curr_func[-1], p[-1])
-    has_dim = curr_dir[-1].get_dim(curr_func[-1], p[-1])
+    has_dim = curr_dir[-1].get_dim(curr_func[-1], p[-1]) # revisa si es un arreglo
     base_dir = var_mem
     
     if var_type == -1:
@@ -716,7 +727,7 @@ def p_f_verify_type_composite(p):
     var_type, var_mem = obj_vars.get_var(p[-1]) # trae el tipo y la memoria del atributo
 
     # la direccion real del atributo depende de la memoria base del objeto
-    # en el objeto se guarda una especia de offset para cada atributo
+    # en el objeto se guarda una especie de offset para cada atributo
     if var_type == 0:
         real_mem = obj_mem[0] + (var_mem)
     elif var_type == 1:
@@ -732,14 +743,14 @@ def p_f_verify_type_composite(p):
 def p_f_no_index(p):
     "f_no_index :"
     global found_error
-    if has_dim:
+    if has_dim: # habia dimensiones pero no se indexó nada
         print("ERROR: indexable variable, line", lexer.lineno)
         found_error = True
 
 def p_f_start_array(p):
     "f_start_array :"
     global dim, found_error
-    if not has_dim:
+    if not has_dim: # se intentó indexar
         print("Error: variable not indexable, line", lexer.lineno)
         found_error = True
     else:
@@ -753,8 +764,8 @@ def p_f_index(p):
     "f_index :"
     lim_sup, m = pilaDim[-1][0].get_node(dim)
 
-    const_mem = add_constante(0, 0)
-    lim_mem = add_constante(lim_sup, 0)
+    const_mem = get_constante(0, 0)
+    lim_mem = get_constante(lim_sup, 0)
 
     cuadruplos.add("VERIFY", pilaOperandos[-1], const_mem, lim_mem)
 
@@ -762,7 +773,7 @@ def p_f_index(p):
         aux = pilaOperandos.pop()
         pilaTipos.pop()
 
-        m_mem = add_constante(m, 0)
+        m_mem = get_constante(m, 0)
 
         cuadruplos.add("*", aux, m_mem, dirTempNum)
         pilaOperandos.append(dirTempNum)
@@ -800,7 +811,7 @@ def p_f_end_array(p):
     const_tipo, const_mem = constantes.get_var(0) # K = 0
     cuadruplos.add("+", aux1, const_mem, dirTempNum)
 
-    base_mem = add_constante(pilaDim[-1][2], 0)
+    base_mem = get_constante(pilaDim[-1][2], 0)
 
     cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1) # contiene el valor numerico de la direccion
 
@@ -927,13 +938,27 @@ def p_fact(p):
 
     if p[1] == '-':
         pilaTipos.append(0)
-        var_mem = add_constante(-1 * p[2], 0)
+        var_mem = get_constante(-1 * p[2], 0)
         pilaOperandos.append(var_mem)
 
     elif p[1] == '+':
         pilaTipos.append(0)
-        var_mem = add_constante(p[2], 0)
+        var_mem = get_constante(p[2], 0)
         pilaOperandos.append(var_mem)
+
+def p_lparen(p):
+    "lparen :"
+    pilaOperadores.append(p[-1])
+
+def p_rparen(p):
+    "rparen :"
+    pilaOperadores.pop()
+
+def p_f_fact(p):
+    "f_fact :"
+    pilaTipos.append(0)
+    var_mem = get_constante(p[-1], 0)
+    pilaOperandos.append(var_mem)
 
 def p_f_return_val(p):
     "f_return_val :"
@@ -960,20 +985,6 @@ def p_f_return_val(p):
     else:
         pilaOperandos.append(ret_mem)
         pilaTipos.append(ret_type)
-
-def p_lparen(p):
-    "lparen :"
-    pilaOperadores.append(p[-1])
-
-def p_rparen(p):
-    "rparen :"
-    pilaOperadores.pop()
-
-def p_f_fact(p):
-    "f_fact :"
-    pilaTipos.append(0)
-    var_mem = add_constante(p[-1], 0)
-    pilaOperandos.append(var_mem)
 
 def p_condicion(p):
     '''condicion : IF '(' expresion ')' f_if THEN '{' estatutos '}' condicionp f_endif'''
@@ -1059,7 +1070,7 @@ def p_f_for_to(p):
 
 def p_f_for_end(p):
     "f_for_end :" 
-    const_mem = add_constante(1, 0)
+    const_mem = get_constante(1, 0)
     cuadruplos.add("+", var_ctrl, const_mem, dirTempNum) # sumar 1 a la var de control
     cuadruplos.add("=", dirTempNum, -1, var_ctrl) # asignar el resultado a la var de control
     add_memory("temp", 0, 1)
@@ -1118,7 +1129,7 @@ def p_write_listp(p):
 
 def p_f_string(p):
     "f_string :"
-    const_mem = add_constante(p[-1], 1)
+    const_mem = get_constante(p[-1], 1)
     pilaOperandos.append(const_mem)
     pilaTipos.append(1)
 

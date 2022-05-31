@@ -23,7 +23,7 @@ func f2(number a): number {
 }
 
 main() {
-    n = call o:f2( call f2(p) );
+    n = call ol:f2( p );
 }
 
 end;

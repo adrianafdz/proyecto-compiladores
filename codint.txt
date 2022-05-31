@@ -1,9 +1,9 @@
-GOTO,-1,-1,16
-RET,5000,-1,-1
+GOTO,-1,-1,-1
+RET,5000,-1,16
 ENDFUNC,-1,-1,-1
 ERA,f1,objeto,-1
 PARAMETER,5000,1,-1
-GOSUB,f1,-1,2
+GOSUB,f1,objeto,2
 =,2,-1,5000
 RET,5000,-1,-1
 ENDFUNC,-1,-1,-1
