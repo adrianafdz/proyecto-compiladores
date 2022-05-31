@@ -1,0 +1,11 @@
+program prueba5;
+
+def string : s;
+def number : x;
+
+main() {
+    s = "hola" & "adios";
+    call print(s & call to_string(x) );
+}
+
+end;

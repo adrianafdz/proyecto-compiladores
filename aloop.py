@@ -194,7 +194,7 @@ t_ignore  = ' \t'
 t_COMP = r'(<>|<|>|==)'
 t_OPTERM = r'\+|\-'
 t_OPFACT = r'\*|\/'
-t_STR = r'".*"'
+t_STR = r'".*?"'
 
 def t_ID(t):
     r'[a-zA-Z][a-zA-Z_0-9]*'
@@ -817,13 +817,7 @@ def p_f_end_array(p):
 
 def p_expresion(p):
     '''expresion : exp
-                 | expresion COMP f_oper exp f_expres
-                 | STR f_string_expr '''
-
-def p_f_string_expr(p):
-    "f_string_expr :"
-    pilaOperandos.append(p[-1])
-    pilaTipos.append(1)
+                 | expresion COMP f_oper exp f_expres '''
 
 def p_f_expres(p):
     "f_expres :"
@@ -917,7 +911,10 @@ def p_fact(p):
             | var
             | NUM f_fact
             | OPTERM NUM
-            | CALL func f_return_val f_end_call f_end_check'''
+            | CALL func f_return_val f_end_call f_end_check
+            | STR f_string 
+            | fact '&' f_oper var f_concat
+            | fact '&' f_oper STR f_string f_concat '''
 
     if p[1] == '-':
         pilaTipos.append(0)
@@ -928,6 +925,30 @@ def p_fact(p):
         pilaTipos.append(0)
         var_mem = get_constante(p[2], 0)
         pilaOperandos.append(var_mem)
+
+def p_f_concat(p):
+    "f_concat :"
+    global found_error
+    if len(pilaOperadores) > 0 and len(pilaOperandos) > 1 and pilaOperadores[-1] == '&':
+        ro = pilaOperandos.pop()
+        rt = pilaTipos.pop()
+        lo = pilaOperandos.pop()
+        lt = pilaTipos.pop()
+        oper = pilaOperadores.pop()
+        tres = cubo.check(oper, rt, lt)
+
+        if tres == -1:
+            print("ERROR: Type Mismatch")
+            found_error = True
+        else:
+            if not mem_available("temp", tres):
+                print("MEMORIA TEMPORAL LLENA")
+            res = dirTempStr
+            add_memory("temp", 1, 1)
+            cuadruplos.add(oper, lo, ro, res)
+
+            pilaOperandos.append(res)
+            pilaTipos.append(tres) 
 
 def p_lparen(p):
     "lparen :"
@@ -1112,7 +1133,8 @@ def p_write_listp(p):
 
 def p_f_string(p):
     "f_string :"
-    const_mem = get_constante(p[-1], 1)
+    clean = p[-1][1:-1] # quitar comillas
+    const_mem = get_constante(clean, 1)
     pilaOperandos.append(const_mem)
     pilaTipos.append(1)
 
