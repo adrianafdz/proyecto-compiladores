@@ -6,7 +6,7 @@ def number : x;
 main() {
     s = "2" & "adios" & m;
     call input(s);
-    x = call to_number(s);
+    x = call to_number("d");
 }
 
 end;

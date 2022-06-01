@@ -246,6 +246,7 @@ def p_f_prog(p):
 def p_f_main(p):
     "f_main :"
     cuadruplos.fill(pilaSaltos.pop(), cuadruplos.get_cont()) # rellena el primer GOTO con el cuádruplo donde empieza el programa principal
+    cuadruplos.add("ERA", curr_func[-1], -1, -1) # generar memoria global
 
 def p_f_end(p):
     "f_end : "
@@ -667,8 +668,8 @@ def p_var(p):
 
 # Dimensiones al indexar un arreglo o matriz
 def p_indexacion(p):
-    '''indexacion : f_start_array '[' expresion f_index ']' f_end_array
-                 | f_start_array '[' expresion f_index ']' '[' f_next_index expresion f_index ']' f_end_array
+    '''indexacion : '[' f_start_array expresion f_index ']' f_end_array
+                 | '[' f_start_array expresion f_index ']' '[' f_next_index expresion f_index ']' f_end_array
                  | f_no_index empty'''
 
 def p_f_end_check(p):
@@ -727,14 +728,14 @@ def p_f_no_index(p):
     "f_no_index :"
     global found_error
     if has_dim: # habia dimensiones pero no se indexó nada
-        print("ERROR: indexable variable, line:", lexer.lineno)
+        print("ERROR: Indexable variable, line:", lexer.lineno)
         found_error = True
 
 def p_f_start_array(p):
     "f_start_array :"
     global dim, found_error
     if not has_dim: # se intentó indexar
-        print("ERROR: variable not indexable, line:", lexer.lineno)
+        print("ERROR: Variable not indexable, line:", lexer.lineno)
         found_error = True
     else:
         arr = pilaOperandos.pop()
@@ -907,7 +908,7 @@ def p_f_oper(p):
     pilaOperadores.append(p[-1])
 
 def p_fact(p):
-    '''fact : '(' lparen expresion ')' rparen
+    '''fact : '(' f_lparen expresion ')' f_rparen
             | var
             | NUM f_fact
             | OPTERM NUM
@@ -951,12 +952,12 @@ def p_f_concat(p):
             pilaOperandos.append(res)
             pilaTipos.append(tres) 
 
-def p_lparen(p):
-    "lparen :"
+def p_f_lparen(p):
+    "f_lparen :"
     pilaOperadores.append(p[-1])
 
-def p_rparen(p):
-    "rparen :"
+def p_f_rparen(p):
+    "f_rparen :"
     pilaOperadores.pop()
 
 def p_f_fact(p):
@@ -1086,7 +1087,7 @@ def p_f_for_end(p):
     cuadruplos.fill(fin, cuadruplos.get_cont())
 
 def p_to_num(p):
-    '''to_num : TO_NUMBER '(' STR ')' 
+    '''to_num : TO_NUMBER '(' STR f_string ')' 
               | TO_NUMBER '(' var ')' '''
     global found_error
     if pilaTipos[-1] == 1:
