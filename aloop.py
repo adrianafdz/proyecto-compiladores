@@ -193,6 +193,7 @@ literals = ['=', ';', ':', ',', '{', '}', '(', ')', '[', ']', '&']
 tokens = tokens + list(reserved.values())
 
 t_ignore  = ' \t'
+t_ignore_COMMENT = r'\#.*'
 t_COMP = r'(<>|<|>|==)'
 t_OPTERM = r'\+|\-'
 t_OPFACT = r'\*|\/'
@@ -678,7 +679,7 @@ def p_var(p):
 
 def p_f_verify_type(p):
     "f_verify_type :"
-    global found_error, has_dim, base_dir
+    global found_error, has_dim, base_dir, curr_tipo
 
     check_obj.append(None)
 
@@ -696,13 +697,15 @@ def p_f_verify_type(p):
         else:
             pilaOperandos.append(var_mem)
             pilaTipos.append(var_type)
+            curr_tipo = var_type
     else:
         pilaOperandos.append(var_mem)
         pilaTipos.append(var_type)
+        curr_tipo = var_type
 
 def p_f_verify_type_composite(p):
     "f_verify_type_composite :"
-    global found_error
+    global found_error, curr_tipo
     
     obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1]) # busca de qué tipo de objeto es la variable (busca en las variables globales)
 
@@ -723,6 +726,7 @@ def p_f_verify_type_composite(p):
     else:
         pilaOperandos.append(real_mem)
         pilaTipos.append(var_type)
+        curr_tipo = var_type
 
 def p_f_end_check(p):
     "f_end_check :"
@@ -752,7 +756,7 @@ def p_f_start_array(p):
         arr_type = pilaTipos.pop()
         dim = 1
         pilaOperadores.append('(') # fake bottom
-        pilaDim.append((has_dim, dim, base_dir))
+        pilaDim.append((has_dim, dim, base_dir, curr_tipo))
 
 def p_f_index(p):
     "f_index :"
@@ -788,8 +792,8 @@ def p_f_next_index(p):
     "f_next_index :"
     global dim
     dim += 1
-    top_arr, top_dim, base = pilaDim.pop()
-    pilaDim.append((top_arr, top_dim + 1, base))
+    top_arr, top_dim, base, tipo = pilaDim.pop()
+    pilaDim.append((top_arr, top_dim + 1, base, tipo))
 
 def p_f_end_array(p):
     "f_end_array :"
@@ -809,14 +813,14 @@ def p_f_end_array(p):
 
     cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1) # contiene el valor numerico de la direccion
 
-    if curr_tipo == 0:
+    if pilaDim[-1][3] == 0:
         cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointNum) # asigna la direccion al apuntador
         pilaOperandos.append(dirTempPointNum)
         pilaTipos.append(3)
         add_memory("temp", 0, 2)
         add_memory("temp", 3, 1)
 
-    elif curr_tipo == 1:
+    elif pilaDim[-1][3] == 1:
         cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointStr) # asigna la direccion al apuntador
         pilaOperandos.append(dirTempPointStr)
         pilaTipos.append(4)
