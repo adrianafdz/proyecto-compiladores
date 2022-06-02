@@ -6,27 +6,29 @@ from dirFunc import dirFunc
 from cuadruplos import Cuadruplos
 from cuboSemantico import cuboSemantico
 from tablaVars import tablaVars
+from dirVirtuales import *
 
 found_error = False
 empty_file = True
 
-dirGlobalNum = 0 # 0 - 2999
-dirGlobalStr = 3000 # 3000 - 4999
+# DIRECCIONES VIRTUALES
+dirGlobalNum = BASE_DIRGLOBALNUM_LI
+dirGlobalStr = BASE_DIRGLOBALSTR_LI
 
-dirLocalNum = 5000 # 5000 - 7999
-dirLocalStr = 8000 # 8000 - 9999
+dirLocalNum = BASE_DIRLOCALNUM_LI
+dirLocalStr = BASE_DIRLOCALSTR_LI
 
-dirTempNum = 10000 # 10000 - 12999
-dirTempStr = 13000 # 13000 - 13999
-dirTempBool = 14000 # 14000 - 14999
-dirTempPointNum = 15000 # 15000 - 15999
-dirTempPointStr = 16000 # 16000 - 16999
+dirTempNum = BASE_DIRTEMPNUM_LI
+dirTempStr = BASE_DIRTEMPSTR_LI
+dirTempBool = BASE_DIRTEMPBOOL_LI
+dirTempPointNum = BASE_DIRTEMPPOINTNUM_LI
+dirTempPointStr = BASE_DIRTEMPPOINTSTR_LI
 
-dirConstNum = 17000 # 17000 - 21999
-dirConstStr = 22000 # 22000 - 26999
+dirConstNum = BASE_DIRCONSTNUM_LI
+dirConstStr = BASE_DIRCONSTSTR_LI
 
-dirObjNum = 0 # 0 - 2999
-dirObjStr = 3000 # 3000 - 4999
+dirObjNum = BASE_DIROBJNUM_LI
+dirObjStr = BASE_DIROBJSTR_LI
 
 cuadruplos = Cuadruplos()
 cubo = cuboSemantico()
@@ -82,35 +84,35 @@ def get_constante(value, type):
 def mem_available(scope, tipo):
     if scope == 'global':
         if tipo == 0: # number
-            return dirGlobalNum <= 2999
+            return dirGlobalNum <= BASE_DIRGLOBALNUM_LS
         elif tipo == 1: # string
-            return dirGlobalStr <= 4999
+            return dirGlobalStr <= BASE_DIRGLOBALSTR_LS
     elif scope == 'local':
         if tipo == 0: # number
-            return dirLocalNum <= 7999
+            return dirLocalNum <= BASE_DIRLOCALNUM_LS
         elif tipo == 1: # string
-            return dirLocalStr <= 9999
+            return dirLocalStr <= BASE_DIRLOCALSTR_LS
     elif scope == 'temp':
         if tipo == 0: # number
-            return dirTempNum <= 12999
+            return dirTempNum <= BASE_DIRTEMPNUM_LS
         elif tipo == 1: # string
-            return dirTempStr <= 13999
+            return dirTempStr <= BASE_DIRTEMPSTR_LS
         elif tipo == 2: # bool
-            return dirTempBool <= 14999
+            return dirTempBool <= BASE_DIRTEMPBOOL_LS
         elif tipo == 3: # point num
-            return dirTempPointNum <= 15999
+            return dirTempPointNum <= BASE_DIRTEMPPOINTNUM_LS
         elif tipo == 4: # point str
-            return dirTempPointNum <= 16999
+            return dirTempPointNum <= BASE_DIRTEMPPOINTSTR_LS
     elif scope == 'constantes':
         if tipo == 0:
-            return dirConstNum <= 21999
+            return dirConstNum <= BASE_DIRCONSTNUM_LS
         elif tipo == 1:
-            return dirConstStr <= 26999
+            return dirConstStr <= BASE_DIRCONSTSTR_LS
     elif scope == 'objeto':
         if tipo == 0:
-            return dirObjNum <= 2999
+            return dirObjNum <= BASE_DIROBJNUM_LS
         elif tipo == 1:
-            return dirObjStr <= 4999
+            return dirObjStr <= BASE_DIROBJSTR_LS
     return False
 
 # Función para ir aumentando los contadores de las direcciones de memoria según el tipo y scope
@@ -251,15 +253,16 @@ def p_f_main(p):
 def p_f_end(p):
     "f_end : "
     # Calcula recursos del main, acumulando globales y temporales
-    recNum = dirGlobalNum + (dirTempNum - 10000)
-    recStr = dirGlobalStr - 3000 + (dirTempStr - 13000)
-    recBool = dirTempBool - 14000
-    recPointNum = dirTempPointNum - 15000
-    recPointStr = dirTempPointStr - 16000
+    recNum = dirGlobalNum + (dirTempNum - BASE_DIRTEMPNUM_LI)
+    recStr = dirGlobalStr - BASE_DIRGLOBALSTR_LI + (dirTempStr - BASE_DIRTEMPSTR_LI)
+    recBool = dirTempBool - BASE_DIRTEMPBOOL_LI
+    recPointNum = dirTempPointNum - BASE_DIRTEMPPOINTNUM_LI
+    recPointStr = dirTempPointStr - BASE_DIRTEMPPOINTSTR_LI
 
     curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPointNum, recPointStr])
     # print(curr_dir[-1])
-    constantes.transform()
+    constantes.generate_file()
+    curr_dir[0].generate_file()
     # print(constantes)
     curr_dir[-1].delete_dir() # elimina el directorio de funciones
     curr_func.pop() # quita el programa principal de la pila
@@ -283,11 +286,17 @@ def p_f_startclass(p):
 def p_f_clasepadre(p):
     "f_clasepadre :"
     global dirFuncObj
-    curr_dir[-1].copy_class_to(p[-1], curr_func[-1]) # copia todo el contenido del objeto padre
-    rec = curr_dir[-1].get_resources(curr_func[-1]) # obtiene sus recursos para así seguir registrando a partir de los que ya se crearon
-    dirFuncObj = curr_dir[-1].get_dir_from_obj(curr_func[-1])
-    add_memory("objeto", 0, rec[0]) # actualiza los contadores según los recursos
-    add_memory("objeto", 1, rec[1])
+    tipo, mem = curr_dir[0].get_func(p[-1]) # revisa que exista ese id y que sí sea un objeto
+    
+    if tipo == 5: # objeto
+        curr_dir[-1].copy_class_to(p[-1], curr_func[-1]) # copia todo el contenido del objeto padre
+        rec = curr_dir[-1].get_resources(curr_func[-1]) # obtiene sus recursos para así seguir registrando a partir de los que ya se crearon
+        dirFuncObj = curr_dir[-1].get_dir_from_obj(curr_func[-1])
+        add_memory("objeto", 0, rec[0]) # actualiza los contadores según los recursos
+        add_memory("objeto", 1, rec[1])
+    else:
+        print("ERROR: Undeclared object", p[-1], ", line:", lexer.lineno)
+        found_error = True
 
 # Declaración de variables dentro una clase o función (no permite declarar objetos)
 def p_cvars(p):
@@ -305,15 +314,15 @@ def p_f_endclass(p):
     global dirObjNum, dirObjStr
     # Calcula los recursos de la clase
     recNum = dirObjNum
-    recStr = dirObjStr - 3000
+    recStr = dirObjStr - BASE_DIROBJSTR_LI
 
     curr_dir.pop()
-    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, 0, 0])
+    curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, 0, 0, 0])
     curr_func.pop()
 
     # reestablece los contadores
-    dirObjNum = 0
-    dirObjStr = 3000
+    dirObjNum = BASE_DIROBJNUM_LI
+    dirObjStr = BASE_DIROBJSTR_LI
 
 def p_funciones(p):
     '''funciones : funciones funcion
@@ -337,31 +346,32 @@ def p_f_tipofunc(p):
     "f_tipofunc :"
     curr_dir[-1].update_func_type(curr_func[-1], curr_tipo)
 
-    if len(curr_func) > 2: # se trata de metodo en un objeto
-        if curr_tipo == 0:
-            curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirObjNum)
-        else:
-            curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirObjStr)
+    if curr_tipo != 6:
+        if len(curr_func) > 2: # se trata de metodo en un objeto
+            if curr_tipo == 0:
+                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirObjNum)
+            else:
+                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirObjStr)
 
-        add_memory("objeto", curr_tipo, 1)
-    else: # funcion global
-        if curr_tipo == 0:
-            curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirGlobalNum)
-        else:
-            curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirGlobalStr)
+            add_memory("objeto", curr_tipo, 1)
+        else: # funcion global
+            if curr_tipo == 0:
+                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirGlobalNum)
+            else:
+                curr_dir[0].add_return_value(curr_func[-2], curr_func[-1], curr_tipo, dirGlobalStr)
 
-        add_memory("global", curr_tipo, 1)
+            add_memory("global", curr_tipo, 1)
 
 def p_f_endfunc(p):
     "f_endfunc :"
     global dirLocalNum, dirLocalStr, dirTempNum, dirTempStr, dirTempBool, dirTempPointNum, dirTempPointStr
     curr_dir[-1].delete_var_table(curr_func[-1])
     # Calcula los recursos de la función según los registros locales y temporales
-    recNum = dirLocalNum - 5000 + (dirTempNum - 10000)
-    recStr = dirLocalStr - 8000 + (dirTempStr - 13000)
+    recNum = dirLocalNum - BASE_DIRLOCALNUM_LI + (dirTempNum - BASE_DIRTEMPNUM_LI)
+    recStr = dirLocalStr - BASE_DIRLOCALSTR_LI + (dirTempStr - BASE_DIRTEMPSTR_LI)
     recBool = 0
-    recPointNum = dirTempPointNum - 15000
-    recPointStr = dirTempPointStr - 16000
+    recPointNum = dirTempPointNum - BASE_DIRTEMPPOINTNUM_LI
+    recPointStr = dirTempPointStr - BASE_DIRTEMPPOINTSTR_LI
 
     curr_dir[-1].add_resources(curr_func[-1], [recNum, recStr, recBool, recPointNum, recPointStr])
     curr_func.pop()
@@ -369,13 +379,13 @@ def p_f_endfunc(p):
     cuadruplos.add("ENDFUNC", -1, -1, -1) # cuadruplo para regresar al programa principal
 
     # reestablece los contadores
-    dirLocalNum = 5000
-    dirLocalStr = 8000
-    dirTempNum = 10000
-    dirTempStr = 13000
-    dirTempBool = 14000
-    dirTempPointNum = 15000 
-    dirTempPointStr = 16000
+    dirLocalNum = BASE_DIRLOCALNUM_LI
+    dirLocalStr = BASE_DIRLOCALSTR_LI
+    dirTempNum = BASE_DIRTEMPNUM_LI
+    dirTempStr = BASE_DIRTEMPSTR_LI
+    dirTempBool = BASE_DIRTEMPBOOL_LI
+    dirTempPointNum = BASE_DIRTEMPPOINTNUM_LI 
+    dirTempPointStr = BASE_DIRTEMPPOINTSTR_LI
 
 # Declaración de variables globales (permite objetos)
 def p_vars(p):
@@ -666,16 +676,6 @@ def p_var(p):
     '''var : ID f_varobj ':' ID f_verify_type_composite indexacion f_end_check
            | ID f_verify_type indexacion f_end_check'''
 
-# Dimensiones al indexar un arreglo o matriz
-def p_indexacion(p):
-    '''indexacion : '[' f_start_array expresion f_index ']' f_end_array
-                 | '[' f_start_array expresion f_index ']' '[' f_next_index expresion f_index ']' f_end_array
-                 | f_no_index empty'''
-
-def p_f_end_check(p):
-    "f_end_check :"
-    check_obj.pop() # Termina de usar un método o variable que es miembro de un objeto
-
 def p_f_verify_type(p):
     "f_verify_type :"
     global found_error, has_dim, base_dir
@@ -723,6 +723,16 @@ def p_f_verify_type_composite(p):
     else:
         pilaOperandos.append(real_mem)
         pilaTipos.append(var_type)
+
+def p_f_end_check(p):
+    "f_end_check :"
+    check_obj.pop() # Termina de usar un método o variable que es miembro de un objeto
+
+# Dimensiones al indexar un arreglo o matriz
+def p_indexacion(p):
+    '''indexacion : '[' f_start_array expresion f_index ']' f_end_array
+                 | '[' f_start_array expresion f_index ']' '[' f_next_index expresion f_index ']' f_end_array
+                 | f_no_index empty'''
 
 def p_f_no_index(p):
     "f_no_index :"
@@ -1090,9 +1100,8 @@ def p_to_num(p):
     '''to_num : TO_NUMBER '(' STR f_string ')' 
               | TO_NUMBER '(' var ')' '''
     global found_error
-    if pilaTipos[-1] == 1:
+    if pilaTipos.pop() == 1:
         cuadruplos.add("CNUM", pilaOperandos.pop(), -1, dirTempNum)
-        pilaTipos.pop()
         pilaOperandos.append(dirTempNum)
         pilaTipos.append(0)
         add_memory("temp", 0, 1)
@@ -1103,9 +1112,8 @@ def p_to_num(p):
 def p_to_str(p):
     '''to_str : TO_STRING '(' expresion ')' '''
     global found_error
-    if pilaTipos[-1] == 0:
+    if pilaTipos.pop() == 0:
         cuadruplos.add("CSTR", pilaOperandos.pop(), -1, dirTempStr)
-        pilaTipos.pop()
         pilaOperandos.append(dirTempStr)
         pilaTipos.append(1)
         add_memory("temp", 1, 1)

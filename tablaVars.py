@@ -11,6 +11,9 @@
 #   Esta clase se utiliza para el directorio de funciones y para almacenar constantes
 ###------------------
 
+import json
+
+
 class tablaVars:
 
     # Constructor para la tabla de variables
@@ -85,11 +88,14 @@ class tablaVars:
             output += '\t } \n'
         return output
 
-    # Transforma la tabla de variables, cambiando la llave a la dirección de memoria
-    # esto para facilitar su búsqueda en la máquina virtual
-    def transform(self):
+    # Transforma la tabla de variables, cambiando la llave a la dirección de memoria,
+    # y lo almacena en un archivo json.
+    # Esto para poder acceder a los valores desde la máquina virtual y poder buscarlos por su dirección
+    def generate_file(self):
         new_table = {}
         for key1, value1 in self.tabla_vars.items():
             new_table[value1['memoria']] = value1
 
-        self.tabla_vars = new_table
+        # self.tabla_vars = new_table
+        with open("constantes.json", "w") as outfile:
+            json.dump(self.tabla_vars, outfile)

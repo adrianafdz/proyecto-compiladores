@@ -18,8 +18,8 @@ class DimStructure:
     # Agrega un nuevo nodo con su límite superior
     # y va haciendo las operaciones para calcular el tamaño
     def add_upper_lim(self, value):
-        self.up_lim.append(value)
-        self.R = self.R * (value)
+        self.up_lim.append(int(value)) # asegurar que sea número entero
+        self.R = self.R * (int(value))
         self.DIM += 1
 
     # Resuelve las m cuando ya se registraron todas las dimensiones

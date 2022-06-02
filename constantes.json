@@ -1,0 +1,14 @@
+{
+    "3.0": {
+        "nombre": 3.0,
+        "tipo": 0,
+        "dimension": null,
+        "memoria": 17000
+    },
+    "4.0": {
+        "nombre": 4.0,
+        "tipo": 0,
+        "dimension": null,
+        "memoria": 17001
+    }
+}

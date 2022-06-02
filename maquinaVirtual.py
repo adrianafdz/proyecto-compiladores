@@ -1,5 +1,6 @@
 import sys
 from aloop import *
+from dirVirtuales import *
 
 # Declaracion de constantes
 CONST_TEMPORAL = 'temporal'

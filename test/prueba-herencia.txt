@@ -25,6 +25,7 @@ def objeto2 : o2;
 
 main() {
     p = call o:f1();
+    n = 3 * 4;
 }
 
 end;

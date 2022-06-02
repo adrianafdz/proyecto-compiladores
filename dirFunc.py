@@ -5,7 +5,7 @@
 #   - nombre de la funcion
 #   - tipo
 #   - inicio (en qué cuádruplo empieza)
-#   - recursos (tamaño de memoria que ocupa)
+#   - recursos (tamaño de memoria que ocupa): [Num, Str, Bool, PtNum, PtStr]
 #   - tabla de variables
 #   - lista de tipos de los parámetros
 #   - directorio de funciones (para las clases)
@@ -14,6 +14,7 @@
 
 tipos = [0, 1, 2] # number, string, nothing
 
+import json
 from tablaVars import tablaVars
 
 class dirFunc:
@@ -55,7 +56,7 @@ class dirFunc:
     # Al terminar de compilar una función se registran cuántos recursos utilizó
     def add_resources(self, nombre, cantidades):
         if nombre in self.dir_func:
-            self.dir_func[nombre]['recursos'] = cantidades # [Num, Str, Bool, Pt]
+            self.dir_func[nombre]['recursos'] = cantidades # [Num, Str, Bool, PtNum, PtStr]
         else:
             print("Error: la funcion", str(nombre), "no existe")
             return False
@@ -187,3 +188,22 @@ class dirFunc:
                 output += '\t' + key2 + ' : ' + str(value2) + '\n'
             output += '} \n'
         return output
+
+    # Genera un archivo json en donde se almacenan los recursos que utiliza cada función
+    # Este archivo lo utiliza la máquina virtual para la administración de memoria
+    def generate_file(self):
+        data = self.transform()
+
+        with open("recursos.json", "w") as outfile:
+            json.dump(data, outfile)
+
+    def transform(self):
+        resources_data = {}
+        for key1, value1 in self.dir_func.items():
+            if 'funcs' in value1: # es una clase
+                resources_class = value1['funcs'].transform() # recursos de cada metodo
+                resources_data[key1] = resources_class
+            else: # es una función
+                resources_data[key1] = value1['recursos']
+
+        return resources_data
