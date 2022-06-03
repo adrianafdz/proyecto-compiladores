@@ -98,4 +98,4 @@ class tablaVars:
 
         # self.tabla_vars = new_table
         with open("constantes.json", "w") as outfile:
-            json.dump(self.tabla_vars, outfile)
+            json.dump(new_table, outfile)

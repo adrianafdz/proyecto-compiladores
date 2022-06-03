@@ -253,6 +253,8 @@ def p_f_main(p):
 
 def p_f_end(p):
     "f_end : "
+    cuadruplos.add("END", -1, -1, -1)
+
     # Calcula recursos del main, acumulando globales y temporales
     recNum = dirGlobalNum + (dirTempNum - BASE_DIRTEMPNUM_LI)
     recStr = dirGlobalStr - BASE_DIRGLOBALSTR_LI + (dirTempStr - BASE_DIRTEMPSTR_LI)
@@ -556,9 +558,7 @@ def p_estatuto(p):
 def p_call_func(p):
     '''call_func : func f_end_call f_end_check
                  | input 
-                 | write 
-                 | to_num 
-                 | to_str
+                 | write
                  | return '''
 
 def p_f_end_call(p):
@@ -806,12 +806,12 @@ def p_f_end_array(p):
 
     aux1 = pilaOperandos.pop()
     pilaTipos.pop()
-    const_tipo, const_mem = constantes.get_var(0) # K = 0
-    cuadruplos.add("+", aux1, const_mem, dirTempNum)
+    const_mem = get_constante(0, 0)
+    cuadruplos.add("+", aux1, const_mem, dirTempNum) # + K
 
     base_mem = get_constante(pilaDim[-1][2], 0)
 
-    cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1) # contiene el valor numerico de la direccion
+    cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1) # + base
 
     if pilaDim[-1][3] == 0:
         cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointNum) # asigna la direccion al apuntador
@@ -928,6 +928,7 @@ def p_fact(p):
             | OPTERM NUM
             | CALL func f_return_val f_end_call f_end_check
             | CALL to_num
+            | CALL to_str
             | STR f_string 
             | fact '&' f_oper var f_concat
             | fact '&' f_oper STR f_string f_concat '''
@@ -1165,20 +1166,26 @@ def p_return(p):
 
     if res_type == f_type or cubo.check('=', res_type, f_type) != -1:
         if len(curr_func) > 2: # es una funcion en un objeto
+            # Obtener la direccion de la variable de retorno
+            ret_type, ret_mem = curr_dir[0].get_return_value(curr_func[-2], curr_func[-1])
+
             if ( res_type == 0 or res_type == 3 ) and mem_available("objeto", 0):
-                cuadruplos.add("RET", res, -1, -1) # asigna el valor de retorno a la variable a la que apunta dirTempPointNum
+                cuadruplos.add("RET", res, -1, ret_mem) # asigna el valor de retorno a la variable a la que apunta dirTempPointNum
 
             elif ( res_type == 1 or res_type == 3 ) and mem_available("objeto", 1):
-                cuadruplos.add("RET", res, -1, -1) # asigna el valor de retorno a la variable a la que apunta dirTempPoint
+                cuadruplos.add("RET", res, -1, ret_mem) # asigna el valor de retorno a la variable a la que apunta dirTempPoint
                 
             else:
                 print("ERROR: Stack overflow")
                 found_error = True
         else:
+            # Obtener la direccion de la variable de retorno
+            ret_type, ret_mem = curr_dir[0].get_return_value(curr_func[-2], curr_func[-1])
+
             if res_type == 0 and mem_available("global", res_type):
-                cuadruplos.add("RET", res, -1, -1) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
+                cuadruplos.add("RET", res, -1, ret_mem) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
             elif res_type == 1 and mem_available("global", res_type):
-                cuadruplos.add("RET", res, -1, -1) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
+                cuadruplos.add("RET", res, -1, ret_mem) # valor local de retorno es res y se le asigna a la variable global dirGlobalNum
             else:
                 print("ERROR: Stack overflow")
                 found_error = True
@@ -1220,6 +1227,6 @@ if (len(s) > 0):
 
 parser.parse(s)
 
-print("\nCuadruplos:")
-print(cuadruplos)
+# print("\nCuadruplos:")
+# print(cuadruplos)
 cuadruplos.generate_file()
