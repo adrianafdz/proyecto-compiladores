@@ -53,6 +53,7 @@ class Memoria():
     def set_data(self, address, value):
         address = int(address)
         indice, tipo = self.get_index(address)
+        # print(address, indice)
 
         if tipo == 0:
             self.number_type[indice] = float(value)

@@ -597,6 +597,7 @@ def p_f_verify_func(p):
         param_count.append(0)
 
         if len(curr_func) > 2: # está llamando a un método desde otro método de un objeto
+            cuadruplos.add("MEMBER", -1, -1, -1)
             cuadruplos.add("ERA", p[-1], curr_func[-2], -1)
         else:
             cuadruplos.add("ERA", p[-1], -1, -1)
@@ -625,8 +626,8 @@ def p_f_verify_func_composite(p):
             found_error = True
         else:
             param_list.append(obj_funcs.get_params(p[-1]))
-            cuadruplos.add("ERA", p[-1], obj_type, -1)
             cuadruplos.add("OBJREF", obj_mem[0], obj_mem[1], -1) # manda una referencia de la dirección del objeto por si se modifica
+            cuadruplos.add("ERA", p[-1], obj_type, -1)
             param_count.append(0)
 
 def p_args(p):
@@ -1217,7 +1218,7 @@ parser = yacc.yacc(start='start')
 
 nombre = input('Nombre del archivo: ')
 print("")
-f = open("./test/" + nombre, "r")
+f = open("./test/revision/" + nombre, "r")
 # f = open(nombre, "r")
 
 s = f.read()

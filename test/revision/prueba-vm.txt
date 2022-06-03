@@ -1,0 +1,33 @@
+program prueba;
+
+
+type objeto {
+    def number : m, o;
+    def string : s;
+
+    func add_two(number y): number {
+        y = y + 2;
+        call ret(y);
+    }
+
+    func f1(number x, number k): number {
+        x = call add_two(x);
+        call ret(x + k);
+    }
+}
+
+def number : n, p, q;
+def string : s;
+def objeto : ob;
+
+func f2(number a): number {
+    call ret(a * 2);
+}
+
+main() {
+    p = 3;
+    q = 10;
+    n = call ob:f1( call ob:f1(p, q), p ) + 8;
+}
+
+end;

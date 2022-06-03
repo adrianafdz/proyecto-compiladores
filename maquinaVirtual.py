@@ -10,7 +10,8 @@ CONSTANTS = {}
 
 pilaMemoria = deque()
 pilaCurrCuadruplo = deque()
-object_ref = None
+object_ref = deque()
+cant_funciones_anidadas = deque()
 
 '''
 Función que obtiene los cuádruplos generados durante la compilación
@@ -85,11 +86,11 @@ def get_value(address, param_scope = 0):
         return pilaMemoria[-1].get_data(val) # le asigna el valor a esa direccion
 
     if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS:
-        if object_ref is not None:
+        if object_ref[-1 - param_scope] is not None:
             if address >= BASE_DIROBJNUM_LI and address <= BASE_DIROBJNUM_LS:
-                address = object_ref[0] + address - BASE_DIROBJNUM_LI
+                address = object_ref[-1 - param_scope][0] + address - BASE_DIROBJNUM_LI
             else:
-                address = object_ref[1] + address - BASE_DIROBJSTR_LI
+                address = object_ref[-1 - param_scope][1] + address - BASE_DIROBJSTR_LI
 
         return pilaMemoria[0].get_data(address)
 
@@ -99,7 +100,7 @@ def get_value(address, param_scope = 0):
 '''
 Función que le asigna un valor a una dirección de memoria
 '''
-def set_value(address, value):
+def set_value(address, value, scope = 0):
     address = int(address)
 
     if address >= BASE_DIRTEMPPOINTNUM_LI and address <= BASE_DIRTEMPPOINTSTR_LS: # apuntador
@@ -113,11 +114,11 @@ def set_value(address, value):
             return pilaMemoria[-1].set_data(points_at, value)
 
     if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS:
-        if object_ref is not None:
+        if object_ref[-1 - scope] is not None:
             if address >= BASE_DIROBJNUM_LI and address <= BASE_DIROBJNUM_LS:
-                address = object_ref[0] + address - BASE_DIROBJNUM_LI
+                address = object_ref[-1 - scope][0] + address - BASE_DIROBJNUM_LI
             else:
-                address = object_ref[1] + address - BASE_DIROBJSTR_LI
+                address = object_ref[-1 - scope][1] + address - BASE_DIROBJSTR_LI
 
         return pilaMemoria[0].set_data(address, value)
 
@@ -161,7 +162,8 @@ def operadores(signo, val1, val2):
 get_cuadruplos()
 get_compilation_info()
 pilaCurrCuadruplo.append(0)
-cant_funciones_anidadas = -1
+cant_funciones_anidadas.append(-1)
+set_object_ref = False
 
 while True:
     cuadruplo = CUADRUPLOS[pilaCurrCuadruplo[-1]]
@@ -193,21 +195,28 @@ while True:
         recursos = get_resources(func_name, obj_name)
         nueva_memoria = Memoria(recursos)
         pilaMemoria.append(nueva_memoria)
-        cant_funciones_anidadas += 1
+        cant_funciones_anidadas[-1] += 1
+
+        if not set_object_ref:
+            object_ref.append(None)
+
+        set_object_ref = False
 
     elif cuadruplo[0] == "PARAMETER":
-        value, tipo = get_value(cuadruplo[1], cant_funciones_anidadas)
+        value, tipo = get_value(cuadruplo[1], cant_funciones_anidadas[-1])
         pilaMemoria[-1].set_parameter(value, tipo)
 
     elif cuadruplo[0] == "GOSUB":
         pilaCurrCuadruplo.append(int(cuadruplo[3]) - 1)
+        cant_funciones_anidadas.append(0)
         continue
 
     elif cuadruplo[0] == "ENDFUNC":
         pilaMemoria.pop()
         pilaCurrCuadruplo.pop()
-        object_ref = None
-        cant_funciones_anidadas -= 1
+        object_ref.pop()
+        cant_funciones_anidadas.pop()
+        cant_funciones_anidadas[-1] -= 1
 
     elif cuadruplo[0] == "RET":
         return_value, _ = get_value(cuadruplo[1])
@@ -215,11 +224,16 @@ while True:
         set_value(return_address, return_value)
 
     elif cuadruplo[0] == "OBJREF":
-        object_ref = (int(cuadruplo[1]), (cuadruplo[2])) # referencia de las direcciones number y string
+        object_ref.append((int(cuadruplo[1]), (cuadruplo[2]))) # referencia de las direcciones number y string
+        set_object_ref = True
+
+    elif cuadruplo[0] == "MEMBER":
+        object_ref.append(object_ref[-1]) # referencia de las direcciones number y string
+        set_object_ref = True
 
     elif cuadruplo[0] == '=':
         value, _ = get_value(cuadruplo[1])
-        set_value(cuadruplo[3], value)
+        set_value(cuadruplo[3], value, cant_funciones_anidadas[-1])
 
     elif cuadruplo[0] in ['+', '-', '*', '/', '>', '<', '<>', '==', '&']:
         value1, _ = get_value(cuadruplo[1])
