@@ -1,0 +1,22 @@
+program factorial;
+
+def string : cant_str;
+def number : cant, res;
+
+func fact(number n): number {
+    if ( n == 1 ) then {
+        call ret(1);
+    } else {
+        call ret( call fact(n - 1) * n );
+    }
+}
+
+main() {
+    call input(cant_str);
+    cant = call to_number(cant_str);
+
+    res = call fact(cant);
+    call print( call to_string(res) );
+}
+
+end;

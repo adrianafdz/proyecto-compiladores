@@ -1,0 +1,28 @@
+program factorial;
+
+def string : cant_str;
+def number : cant, fact, i;
+
+main() {
+    call input(cant_str);
+    cant = call to_number(cant_str);
+
+    if (cant < 0) then {
+        call print("Numero invalido");
+    } else {
+        if ( cant == 0 ) then {
+            call print( call to_string(1) );
+        } else {
+            i = 1;
+            fact = 1;
+
+            for 1 to cant {
+                fact = fact * i;
+                i = i + 1;
+            }
+            call print ( call to_string(fact) );
+        }
+    }
+}
+
+end;
