@@ -1,0 +1,31 @@
+program fibonacci;
+
+def string : cant_str;
+def number : cant;
+def number : i, val;
+
+func fibo(number n): number {
+    if ( n < 2 ) then {
+        call ret(n);
+    } else {
+        call ret( call fibo(n - 1) + call fibo(n - 2) );
+    }
+}
+
+main() {
+    call input(cant_str);
+    cant = call to_number(cant_str);
+
+    if (cant < 0) then {
+        call print("Numero invalido");
+    } else {
+        i = 0;
+        for i to cant - 1 {
+            val = call fibo(i);
+            call print( call to_string(val) );
+            i = i + 1;
+        }
+    }
+}
+
+end;

@@ -224,7 +224,7 @@ def t_error(t):
 # End of file rule
 def t_eof(t):
     if empty_file: print("Empty file")
-    if not found_error and not empty_file: print("No errors found") 
+    if not found_error and not empty_file: print("Compilation successful\n") 
 
 ####################################################
 # YACC (parser)
@@ -372,7 +372,7 @@ def p_f_endfunc(p):
     # Calcula los recursos de la función según los registros locales y temporales
     recNum = dirLocalNum - BASE_DIRLOCALNUM_LI + (dirTempNum - BASE_DIRTEMPNUM_LI)
     recStr = dirLocalStr - BASE_DIRLOCALSTR_LI + (dirTempStr - BASE_DIRTEMPSTR_LI)
-    recBool = 0
+    recBool = dirTempBool - BASE_DIRTEMPBOOL_LI
     recPointNum = dirTempPointNum - BASE_DIRTEMPPOINTNUM_LI
     recPointStr = dirTempPointStr - BASE_DIRTEMPPOINTSTR_LI
 
@@ -556,13 +556,17 @@ def p_estatuto(p):
                 | CALL call_func ';' '''
 
 def p_call_func(p):
-    '''call_func : func f_end_call f_end_check
+    '''call_func : func f_gosub f_end_call f_end_check
                  | input 
                  | write
                  | return '''
 
 def p_f_end_call(p):
     "f_end_call :"
+    function_call.pop()
+
+def p_f_gosub(p):
+    "f_gosub :"
     if check_obj[-1] is None:
         f_type, f_start = curr_dir[-1].get_func(function_call[-1])
 
@@ -576,8 +580,6 @@ def p_f_end_call(p):
         obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
         f_type, f_start = obj_funcs.get_func(function_call[-1])
         cuadruplos.add("GOSUB", function_call[-1], obj_type, f_start)
-
-    function_call.pop()
 
 def p_func(p):
     '''func : ID  f_verify_func '(' args ')'
@@ -927,7 +929,7 @@ def p_fact(p):
             | var
             | NUM f_fact
             | OPTERM NUM
-            | CALL func f_return_val f_end_call f_end_check
+            | CALL func f_gosub f_return_val f_end_call f_end_check
             | CALL to_num
             | CALL to_str
             | STR f_string 
@@ -1005,8 +1007,15 @@ def p_f_return_val(p):
     if ret_type == -1:
         print("ERROR: No return value, line", lexer.lineno)
     else:
-        pilaOperandos.append(ret_mem)
+        if ret_type == 0:
+            cuadruplos.add("=", ret_mem, -1, dirTempNum)
+            pilaOperandos.append(dirTempNum)
+        elif ret_type == 1:
+            cuadruplos.add("=", ret_mem, -1, dirTempStr)
+            pilaOperandos.append(dirTempStr)
+
         pilaTipos.append(ret_type)
+        add_memory("temp", ret_type, 1)
 
 def p_condicion(p):
     '''condicion : IF '(' expresion ')' f_if THEN '{' estatutos '}' condicionp f_endif'''
@@ -1069,7 +1078,9 @@ def p_f_for_start(p):
     global found_error, var_ctrl, var_ctrl_type
 
     if pilaTipos.pop() == 0: # la expresion resulta en numerico
-        var_ctrl = pilaOperandos.pop()
+        cuadruplos.add("=", pilaOperandos.pop(), -1, dirTempNum)
+        var_ctrl = dirTempNum
+        add_memory("temp", 0, 1)
     else:
         found_error = True
         print("ERROR: Type mismatch, line:", lexer.lineno)
@@ -1085,7 +1096,7 @@ def p_f_for_to(p):
         cuadruplos.add(">", var_ctrl, exp, dirTempBool) # el for será inclusive
         cuadruplos.add("GOTOV", dirTempBool, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1) # GotoV
-        add_memory("temp", 3, 1)
+        add_memory("temp", 2, 1)
     else:
         found_error = True
         print("ERROR: Type mismatch, line:", lexer.lineno)

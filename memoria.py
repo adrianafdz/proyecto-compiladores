@@ -96,18 +96,14 @@ class Memoria():
         return value, tipo
 
     def set_parameter(self, value, type):
-        if type == 0:
+        if type == 0 or type == 5:
             self.number_type[self.count_number_params] = float(value)
             self.count_number_params += 1
-        elif type == 1:
+        elif type == 1 or type == 6:
             self.string_type[self.count_string_params] = str(value)
             self.count_string_params += 1
 
     def print(self):
-        print(self.number_type)
-        print(self.string_type)
-        print(self.bool_type)
-        print(self.point_number_type)
-        print(self.point_string_type)
-        print(self.temp_number_type)
-        print(self.temp_string_type)
+        print("NUM:", self.number_type)
+        print("BOOL:", self.bool_type)
+        print("TEMP:", self.temp_number_type)

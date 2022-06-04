@@ -1,0 +1,33 @@
+program fibonacci;
+
+def string : cant_str;
+def number : cant;
+def number : n1, n2, nth, count;
+
+main() {
+    n1 = 0;
+    n2 = 1;
+    count = 0;
+
+    call input(cant_str);
+    cant = call to_number(cant_str);
+
+    if (cant < 0) then {
+        call print("Numero invalido");
+    } else {
+        if ( cant == 1 ) then {
+            call print( call to_string(n1) );
+        } else {
+            while ( count < cant ) do {
+                call print ( call to_string(n1) );
+                nth = n1 + n2;
+                n1 = n2;
+                n2 = nth;
+                
+                count = count + 1;
+            }
+        }
+    }
+}
+
+end;
