@@ -48,8 +48,7 @@ curr_tipo = 6
 dimension = None
 dim1 = None
 dim2 = None
-var_ctrl = None # para el for loop
-var_ctrl_type = None
+var_ctrl = deque() # para el for loop
 has_dim = False
 dim = 1
 base_dir = 0
@@ -708,13 +707,16 @@ def p_f_verify_type(p):
 
 def p_f_verify_type_composite(p):
     "f_verify_type_composite :"
-    global found_error, curr_tipo
+    global found_error, curr_tipo, has_dim, base_dir
     
     obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1]) # busca de qué tipo de objeto es la variable (busca en las variables globales)
 
     obj_vars = curr_dir[0].get_vars_from_obj(obj_type) # trae la tabla de variables de ese objeto
 
     var_type, var_mem = obj_vars.get_var(p[-1]) # trae el tipo y la memoria del atributo
+
+    has_dim = obj_vars.get_dim(p[-1]) # revisa si es un arreglo
+    base_dir = var_mem
 
     # la direccion real del atributo depende de la memoria base del objeto
     # en el objeto se guarda una especie de offset para cada atributo
@@ -817,14 +819,14 @@ def p_f_end_array(p):
     cuadruplos.add("+", dirTempNum, base_mem, dirTempNum+1) # + base
 
     if pilaDim[-1][3] == 0:
-        cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointNum) # asigna la direccion al apuntador
+        cuadruplos.add("=>", dirTempNum + 1, -1, dirTempPointNum) # asigna la direccion al apuntador
         pilaOperandos.append(dirTempPointNum)
         pilaTipos.append(3)
         add_memory("temp", 0, 2)
         add_memory("temp", 3, 1)
 
     elif pilaDim[-1][3] == 1:
-        cuadruplos.add("=", dirTempNum + 1, -1, dirTempPointStr) # asigna la direccion al apuntador
+        cuadruplos.add("=>", dirTempNum + 1, -1, dirTempPointStr) # asigna la direccion al apuntador
         pilaOperandos.append(dirTempPointStr)
         pilaTipos.append(4)
         add_memory("temp", 0, 2)
@@ -1075,11 +1077,11 @@ def p_for(p):
 
 def p_f_for_start(p):
     "f_for_start :"
-    global found_error, var_ctrl, var_ctrl_type
+    global found_error
 
     if pilaTipos.pop() == 0: # la expresion resulta en numerico
         cuadruplos.add("=", pilaOperandos.pop(), -1, dirTempNum)
-        var_ctrl = dirTempNum
+        var_ctrl.append(dirTempNum)
         add_memory("temp", 0, 1)
     else:
         found_error = True
@@ -1093,7 +1095,7 @@ def p_f_for_to(p):
     exp = pilaOperandos.pop()
     if exp_type == 0:
         pilaSaltos.append(cuadruplos.get_cont()) # para el retorno
-        cuadruplos.add(">", var_ctrl, exp, dirTempBool) # el for será inclusive
+        cuadruplos.add(">", var_ctrl[-1], exp, dirTempBool) # el for será inclusive
         cuadruplos.add("GOTOV", dirTempBool, -1, -1)
         pilaSaltos.append(cuadruplos.get_cont() - 1) # GotoV
         add_memory("temp", 2, 1)
@@ -1104,10 +1106,11 @@ def p_f_for_to(p):
 def p_f_for_end(p):
     "f_for_end :" 
     const_mem = get_constante(1, 0)
-    cuadruplos.add("+", var_ctrl, const_mem, dirTempNum) # sumar 1 a la var de control
-    cuadruplos.add("=", dirTempNum, -1, var_ctrl) # asignar el resultado a la var de control
+    cuadruplos.add("+", var_ctrl[-1], const_mem, dirTempNum) # sumar 1 a la var de control
+    cuadruplos.add("=", dirTempNum, -1, var_ctrl[-1]) # asignar el resultado a la var de control
     add_memory("temp", 0, 1)
 
+    var_ctrl.pop()
     fin = pilaSaltos.pop()
     retorno = pilaSaltos.pop()
     cuadruplos.add("GOTO", -1, -1, retorno)
@@ -1129,7 +1132,8 @@ def p_to_num(p):
 def p_to_str(p):
     '''to_str : TO_STRING '(' expresion ')' '''
     global found_error
-    if pilaTipos.pop() == 0:
+    tipo = pilaTipos.pop()
+    if tipo == 0 or tipo == 3:
         cuadruplos.add("CSTR", pilaOperandos.pop(), -1, dirTempStr)
         pilaOperandos.append(dirTempStr)
         pilaTipos.append(1)
@@ -1140,7 +1144,8 @@ def p_to_str(p):
 
 def p_input(p):
     '''input : INPUT '(' var ')' '''
-    if pilaTipos.pop() == 1:
+    tipo = pilaTipos.pop()
+    if tipo == 1 or tipo == 4:
         cuadruplos.add("READ", -1, -1, pilaOperandos.pop())
     else:
         print("ERROR: Type mismatch, line:", lexer.lineno)
@@ -1182,10 +1187,10 @@ def p_return(p):
             ret_type, ret_mem = curr_dir[0].get_return_value(curr_func[-2], curr_func[-1])
 
             if ( res_type == 0 or res_type == 3 ) and mem_available("objeto", 0):
-                cuadruplos.add("RET", res, -1, ret_mem) # asigna el valor de retorno a la variable a la que apunta dirTempPointNum
+                cuadruplos.add("RET", res, -1, ret_mem)
 
             elif ( res_type == 1 or res_type == 3 ) and mem_available("objeto", 1):
-                cuadruplos.add("RET", res, -1, ret_mem) # asigna el valor de retorno a la variable a la que apunta dirTempPoint
+                cuadruplos.add("RET", res, -1, ret_mem)
                 
             else:
                 print("ERROR: Stack overflow")

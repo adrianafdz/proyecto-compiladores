@@ -83,7 +83,7 @@ def get_value(address):
 
     if address >= BASE_DIRTEMPPOINTNUM_LI and address <= BASE_DIRTEMPPOINTSTR_LS: # apuntador
         val, tipo = pilaMemoria[-1].get_data(address) # obtiene la direccion a la que apunta
-        return pilaMemoria[-1].get_data(val) # le asigna el valor a esa direccion
+        return pilaMemoria[-1].get_data(val) # toma el valor a esa direccion
 
     if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS:
         if object_ref[-1 - cant_funciones[-1]] is not None:
@@ -100,17 +100,14 @@ def get_value(address):
 '''
 Función que le asigna un valor a una dirección de memoria
 '''
-def set_value(address, value):
+def set_value(address, value, set_pointer = False):
     address = int(address)
 
     if address >= BASE_DIRTEMPPOINTNUM_LI and address <= BASE_DIRTEMPPOINTSTR_LS: # apuntador
-        points_at, tipo = pilaMemoria[-1].get_data(address) # regresa una direccion
-
-        if points_at is None: 
-            # no tiene asignada una dirección aún
+        if set_pointer: # asignarle una dirección
             return pilaMemoria[-1].set_data(address, int(value))
-        else: 
-            # ya tiene algo asignado, así que se le asigna el valor a la direccion a la que apunta
+        else:
+            points_at, tipo = pilaMemoria[-1].get_data(address) # regresa una direccion
             return pilaMemoria[-1].set_data(points_at, value)
 
     if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS:
@@ -166,7 +163,14 @@ cant_funciones.append(-1)
 set_object_ref = False
 
 while True:
+    # try:
+    #     pilaMemoria[-1].print()
+    #     print("---------------")
+    # except:
+    #     pass
     cuadruplo = CUADRUPLOS[pilaCurrCuadruplo[-1]]
+
+    # print(cuadruplo)
 
     if cuadruplo[0] == 'END':
         # print("Termina ejecución")
@@ -230,6 +234,10 @@ while True:
     elif cuadruplo[0] == "MEMBER":
         object_ref.append(object_ref[-1]) # referencia de las direcciones number y string
         set_object_ref = True
+
+    elif cuadruplo[0] == "=>": # asignar una dirección a un apuntador
+        value, _ = get_value(cuadruplo[1])
+        set_value(cuadruplo[3], value, True)
 
     elif cuadruplo[0] == '=':
         value, _ = get_value(cuadruplo[1])

@@ -107,3 +107,4 @@ class Memoria():
         print("NUM:", self.number_type)
         print("BOOL:", self.bool_type)
         print("TEMP:", self.temp_number_type)
+        print("PNUM:", self.point_number_type)

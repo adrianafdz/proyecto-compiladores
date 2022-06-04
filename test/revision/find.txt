@@ -1,0 +1,35 @@
+program find;
+
+def string : num_str;
+def number : num, i, pos;
+def number[10] : arr;
+
+main() {
+    call input(num_str);
+    num = call to_number(num_str);
+
+    arr[0] = 21;
+    arr[1] = 32;
+    arr[2] = 5;
+    arr[3] = 78;
+    arr[4] = 0;
+    arr[5] = 36;
+    arr[6] = 9;
+    arr[7] = 41;
+    arr[8] = 2;
+    arr[9] = 99;
+
+    pos = -1;
+    i = 0;
+
+    for 0 to 9 {
+        if (arr[i] == num) then {
+            pos = i;
+        }
+        i = i + 1;
+    }
+
+    call print(call to_string(pos));
+}
+
+end;
