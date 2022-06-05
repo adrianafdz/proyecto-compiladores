@@ -1224,6 +1224,7 @@ def p_return(p):
                 
     else:
         print("ERROR: Type mismatch, line:", lexer.lineno)
+        print("Check the type of the function and return value")
         found_error = True
 
 def p_empty(p):
