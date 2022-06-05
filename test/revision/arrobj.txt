@@ -1,0 +1,34 @@
+program arreglosObjetos;
+
+
+type objeto {
+    def number[3] : t;
+
+    func set_values(number a, number b, number c): nothing {
+        t[0] = a;
+        t[1] = b;
+        t[2] = c;
+    }
+
+    func imprmir(): nothing {
+        call print( call to_string(t[0]) & call to_string(t[1]) & call to_string(t[2]) );
+    }
+}
+
+def number : m;
+def number[3] : ar;
+def objeto : ob;
+
+main() {
+    call ob:set_values(3, 5, 10);
+    ar[0] = 4;
+    ar[1] = 1;
+    ar[2] = 9;
+    ob:t[1] = 2;
+    m = ar[ob:t[1]];
+
+    call ob:imprmir();
+    call print( "m =" & call to_string(m) );
+}
+
+end;

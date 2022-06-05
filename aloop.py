@@ -302,7 +302,7 @@ def p_f_clasepadre(p):
 
 # Declaración de variables dentro una clase o función (no permite declarar objetos)
 def p_cvars(p):
-    '''cvars : cvars DEF tipo dimension ':' lista_id ';'
+    '''cvars : cvars DEF tipo dimension ':' lista_id ';' f_delete_dim
              | empty'''
 
 def p_f_cvars(p):
@@ -391,7 +391,7 @@ def p_f_endfunc(p):
 
 # Declaración de variables globales (permite objetos)
 def p_vars(p):
-    '''vars : vars DEF tipo dimension ':' lista_id ';'
+    '''vars : vars DEF tipo dimension ':' lista_id ';' f_delete_dim
             | vars DEF ID f_varsobj ':' lista_id_obj ';'
             | empty'''
 
@@ -405,12 +405,16 @@ def p_f_varsobj(p):
     else:
         print("ERROR: Undeclared object", p[-1], ", line:", lexer.lineno)
         found_error = True
-    dimension = None
 
 def p_lista_id(p): 
     '''lista_id : ID f_vars
                 | lista_id ',' ID f_vars'''
                 
+def p_f_delete_dim(p):
+    "f_delete_dim :"
+    global dimension
+    dimension = None
+
 def p_f_vars(p):
     "f_vars :"
     global dimension, found_error
@@ -459,28 +463,24 @@ def p_f_vars(p):
         else:
             add_memory("local", curr_tipo, dimension.get_size())
 
-    dimension = None
-
 def p_lista_id_obj(p): 
     '''lista_id_obj : ID f_vars_obj
                     | lista_id_obj ',' ID f_vars_obj'''
 
 def p_f_vars_obj(p):
     "f_vars_obj :"
-    global found_error, dimension
+    global found_error
     obj_size = curr_dir[0].get_resources(curr_tipo) # obtiene los recursos del objeto
 
     if not mem_available("global", 0) or not mem_available("global", 1):
         print("ERROR: Stack overflow")
         found_error = True
 
-    curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, [dirGlobalNum, dirGlobalStr])
+    curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, None, [dirGlobalNum, dirGlobalStr])
 
     # toma todas los registros que ocupa segun los recursos
     add_memory("global", 0, obj_size[0])
     add_memory("global", 1, obj_size[1])
-
-    dimension = None
 
 # Dimensiones al momento de declarar un arreglo o matriz
 def p_dimension(p): 
@@ -676,7 +676,7 @@ def p_asignacion(p):
         print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_var(p):
-    '''var : ID f_varobj ':' ID f_verify_type_composite indexacion f_end_check
+    '''var : ID f_varobj ':' ID f_verify_type_composite f_index_obj indexacion f_end_check
            | ID f_verify_type indexacion f_end_check'''
 
 def p_f_verify_type(p):
@@ -692,7 +692,10 @@ def p_f_verify_type(p):
     if var_type == -1:
         if len(curr_func) > 1: # la estaba buscando localmente en una función, ahora buscar en otro scope (global o en el objeto)
             var_type, var_mem = curr_dir[0].get_var(curr_func[-2], p[-1])
-             
+            base_dir = var_mem
+            obj_vars = curr_dir[0].get_vars_from_obj(curr_func[-2])
+            has_dim = obj_vars.get_dim(p[-1]) # revisa si es un arreglo
+
         if var_type == -1:
             print("ERROR: Undeclared variable", p[-1], ", line:", lexer.lineno) # local
             found_error = True
@@ -737,6 +740,11 @@ def p_f_end_check(p):
     "f_end_check :"
     check_obj.pop() # Termina de usar un método o variable que es miembro de un objeto
 
+def p_f_index_obj(p):
+    "f_index_obj :"
+    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1])
+    cuadruplos.add("OBJIND", obj_mem[0], obj_mem[1], -1)
+
 # Dimensiones al indexar un arreglo o matriz
 def p_indexacion(p):
     '''indexacion : '[' f_start_array expresion f_index ']' f_end_array
@@ -762,6 +770,8 @@ def p_f_start_array(p):
         dim = 1
         pilaOperadores.append('(') # fake bottom
         pilaDim.append((has_dim, dim, base_dir, curr_tipo))
+
+    cuadruplos.add("STARR", -1, -1,- 1)
 
 def p_f_index(p):
     "f_index :"

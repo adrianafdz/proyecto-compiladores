@@ -12,6 +12,7 @@ pilaMemoria = deque()
 pilaCurrCuadruplo = deque()
 object_ref = deque()
 cant_funciones = deque()
+indref = deque()
 
 '''
 Función que obtiene los cuádruplos generados durante la compilación
@@ -75,17 +76,33 @@ def get_constant(const_dir):
 '''
 Función que obtiene el valor contenido en una dirección de la memoria
 '''
-def get_value(address):
+def get_value(address, should_pop = True):
+    value = None
     address = int(address)
 
     if address >= BASE_DIRCONSTNUM_LI and address <= BASE_DIRCONSTSTR_LS: # constante
-        return get_constant(address)
+        value = get_constant(address)
 
-    if address >= BASE_DIRTEMPPOINTNUM_LI and address <= BASE_DIRTEMPPOINTSTR_LS: # apuntador
+    elif address >= BASE_DIRTEMPPOINTNUM_LI and address <= BASE_DIRTEMPPOINTSTR_LS: # apuntador
         val, tipo = pilaMemoria[-1].get_data(address) # obtiene la direccion a la que apunta
-        return pilaMemoria[-1].get_data(val) # toma el valor a esa direccion
 
-    if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS: # global
+        if indref[-1] is not None:
+            if val >= BASE_DIROBJNUM_LI and val <= BASE_DIROBJNUM_LS:
+                ref = int(indref[-1][0])
+                val = ref + val
+            else:
+                ref = int(indref[-1][1])
+                val = ref + val
+
+        if should_pop:
+            indref.pop()
+
+        if object_ref[-1 - cant_funciones[-1]] is not None:
+            value = pilaMemoria[0].get_data(val)
+        else:
+            value = pilaMemoria[-1].get_data(val) # toma el valor a esa direccion
+
+    elif address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS: # global
         if object_ref[-1 - cant_funciones[-1]] is not None: # como se utilizan los mismos rangos, hay que identificar si es un objeto
             if address >= BASE_DIROBJNUM_LI and address <= BASE_DIROBJNUM_LS:
                 ref = int(object_ref[-1 - cant_funciones[-1]][0])
@@ -94,10 +111,15 @@ def get_value(address):
                 ref = int(object_ref[-1 - cant_funciones[-1]][1])
                 address = ref + address - BASE_DIROBJSTR_LI
 
-        return pilaMemoria[0].get_data(address)
+        value = pilaMemoria[0].get_data(address)
 
     else: # local
-        return pilaMemoria[-1 - cant_funciones[-1]].get_data(address)
+        value = pilaMemoria[-1 - cant_funciones[-1]].get_data(address)
+
+    if value[0] is None:
+        raise Exception("ERROR: Uninitialized variable")
+
+    return value
 
 '''
 Función que le asigna un valor a una dirección de memoria
@@ -106,10 +128,31 @@ def set_value(address, value, set_pointer = False):
     address = int(address)
 
     if address >= BASE_DIRTEMPPOINTNUM_LI and address <= BASE_DIRTEMPPOINTSTR_LS: # apuntador
-        if set_pointer: # asignarle una dirección
-            return pilaMemoria[-1].set_data(address, int(value))
+        if set_pointer: # asignarle una dirección ( address -> value )
+            value = int(value)
+            if object_ref[-1] is not None:
+                if value >= BASE_DIROBJNUM_LI and value <= BASE_DIROBJNUM_LS:
+                    ref = int(object_ref[-1 - cant_funciones[-1]][0])
+                    value = ref + value - BASE_DIROBJNUM_LI
+                else:
+                    ref = int(object_ref[-1 - cant_funciones[-1]][1])
+                    value = ref + value - BASE_DIROBJSTR_LI
+
+            return pilaMemoria[-1].set_data(address, value)
         else:
             points_at, tipo = pilaMemoria[-1].get_data(address) # obtiene la dirección a la que apunta
+            
+            if indref[-1] is not None:
+                if points_at >= BASE_DIROBJNUM_LI and points_at <= BASE_DIROBJNUM_LS:
+                    ref = int(indref[-1][0])
+                    points_at = ref + points_at
+                else:
+                    ref = int(indref[-1][1])
+                    points_at = ref + points_at
+
+            indref.pop()
+            if object_ref[-1] is not None:
+                return pilaMemoria[0].set_data(points_at, value)
             return pilaMemoria[-1].set_data(points_at, value) # le asigna el valor a esa dirección
 
     if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS: # global
@@ -174,6 +217,7 @@ get_compilation_info()
 pilaCurrCuadruplo.append(0)
 cant_funciones.append(-1)
 set_object_ref = False
+add_indrex = False
 
 while True:
     # try:
@@ -263,8 +307,17 @@ while True:
         res_value = operadores(cuadruplo[0], value1, value2)
         set_value(res_address, res_value)
 
+    elif cuadruplo[0] == "OBJIND":
+        indref.append((int(cuadruplo[1]), int(cuadruplo[2])))
+        add_indrex = True
+
+    elif cuadruplo[0] == "STARR":
+        if not add_indrex:
+            indref.append(None)
+        add_indrex = False
+
     elif cuadruplo[0] == "VERIFY":
-        value, _ = get_value(cuadruplo[1])
+        value, _ = get_value(cuadruplo[1], False)
         lim_inf, _ = get_value(cuadruplo[2])
         lim_sup, _ = get_value(cuadruplo[3])
 
