@@ -27,7 +27,7 @@ def get_cuadruplos():
         CUADRUPLOS.append(cuadruplo)
 
 '''
-Función que obtiene los datos generados durante la compilación
+Función que obtiene los datos sobre los recursos y constantes generados durante la compilación
 '''
 def get_compilation_info():
     global RESOURCES, CONSTANTS
@@ -60,7 +60,7 @@ def get_resources(func_name, obj_name):
     return None
 
 '''
-Función que obtiene el valor de una constante
+Función que obtiene el valor y tipo de una constante
 '''
 def get_constant(const_dir):
     if str(const_dir) in CONSTANTS.keys():
@@ -78,23 +78,25 @@ Función que obtiene el valor contenido en una dirección de la memoria
 def get_value(address):
     address = int(address)
 
-    if address >= BASE_DIRCONSTNUM_LI and address <= BASE_DIRCONSTSTR_LS:
+    if address >= BASE_DIRCONSTNUM_LI and address <= BASE_DIRCONSTSTR_LS: # constante
         return get_constant(address)
 
     if address >= BASE_DIRTEMPPOINTNUM_LI and address <= BASE_DIRTEMPPOINTSTR_LS: # apuntador
         val, tipo = pilaMemoria[-1].get_data(address) # obtiene la direccion a la que apunta
         return pilaMemoria[-1].get_data(val) # toma el valor a esa direccion
 
-    if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS:
-        if object_ref[-1 - cant_funciones[-1]] is not None:
+    if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS: # global
+        if object_ref[-1 - cant_funciones[-1]] is not None: # como se utilizan los mismos rangos, hay que identificar si es un objeto
             if address >= BASE_DIROBJNUM_LI and address <= BASE_DIROBJNUM_LS:
-                address = object_ref[-1 - cant_funciones[-1]][0] + address - BASE_DIROBJNUM_LI
+                ref = int(object_ref[-1 - cant_funciones[-1]][0])
+                address = ref + address - BASE_DIROBJNUM_LI # obtiene la dirección real
             else:
-                address = object_ref[-1 - cant_funciones[-1]][1] + address - BASE_DIROBJSTR_LI
+                ref = int(object_ref[-1 - cant_funciones[-1]][1])
+                address = ref + address - BASE_DIROBJSTR_LI
 
         return pilaMemoria[0].get_data(address)
 
-    else:
+    else: # local
         return pilaMemoria[-1 - cant_funciones[-1]].get_data(address)
 
 '''
@@ -107,52 +109,63 @@ def set_value(address, value, set_pointer = False):
         if set_pointer: # asignarle una dirección
             return pilaMemoria[-1].set_data(address, int(value))
         else:
-            points_at, tipo = pilaMemoria[-1].get_data(address) # regresa una direccion
-            return pilaMemoria[-1].set_data(points_at, value)
+            points_at, tipo = pilaMemoria[-1].get_data(address) # obtiene la dirección a la que apunta
+            return pilaMemoria[-1].set_data(points_at, value) # le asigna el valor a esa dirección
 
-    if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS:
-        if object_ref[-1 - cant_funciones[-1]] is not None:
+    if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALSTR_LS: # global
+        if object_ref[-1 - cant_funciones[-1]] is not None: # identificar si es un objeto
             if address >= BASE_DIROBJNUM_LI and address <= BASE_DIROBJNUM_LS:
-                address = object_ref[-1 - cant_funciones[-1]][0] + address - BASE_DIROBJNUM_LI
+                ref = int(object_ref[-1 - cant_funciones[-1]][0])
+                address = ref + address - BASE_DIROBJNUM_LI
             else:
-                address = object_ref[-1 - cant_funciones[-1]][1] + address - BASE_DIROBJSTR_LI
+                ref = int(object_ref[-1 - cant_funciones[-1]][1])
+                address = ref + address - BASE_DIROBJSTR_LI
 
         return pilaMemoria[0].set_data(address, value)
 
-    else:
+    else: # local
         pilaMemoria[-1 - cant_funciones[-1]].set_data(address, value)
 
+'''
+Función que convierte un valor booleano a 1 o 0
+'''
 def resOpeBool(res):
     if res == True:
         return 1
     elif res == False:
         return 0
 
+'''
+Función para realizar una operación entre dos valores según el signo
+'''
 def operadores(signo, val1, val2):
-    if signo == '+':
-        res = val1 + val2
-    elif signo == '-':
-        res = val1 - val2
-    elif signo == '*':
-        res = val1 * val2
-    elif signo == '/':
-        res = val1 / val2
-    elif signo == '>':
-        res = resOpeBool(val1 > val2)
-    elif signo == '<':
-        res = resOpeBool(val1 < val2)
-    elif signo == '<>':
-        res = resOpeBool(val1 != val2)
-    elif signo == '==':
-        res = resOpeBool(val1 == val2)
-    elif  signo == '<>':
-        res = resOpeBool(val1 != val2)
-    elif signo == '==':
-        res = resOpeBool(val1 == val2)
-    elif signo == '&':
-        res = val1 + val2
+    try:
+        if signo == '+':
+            res = val1 + val2
+        elif signo == '-':
+            res = val1 - val2
+        elif signo == '*':
+            res = val1 * val2
+        elif signo == '/':
+            res = val1 / val2
+        elif signo == '>':
+            res = resOpeBool(val1 > val2)
+        elif signo == '<':
+            res = resOpeBool(val1 < val2)
+        elif signo == '<>':
+            res = resOpeBool(val1 != val2)
+        elif signo == '==':
+            res = resOpeBool(val1 == val2)
+        elif  signo == '<>':
+            res = resOpeBool(val1 != val2)
+        elif signo == '==':
+            res = resOpeBool(val1 == val2)
+        elif signo == '&':
+            res = val1 + val2
 
-    return res
+        return res
+    except:
+        print("ERROR: Invalid operation")
 
 ##########################################################
 # MAIN

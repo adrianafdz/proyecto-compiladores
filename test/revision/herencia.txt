@@ -1,0 +1,66 @@
+program herencia;
+
+type Figura {
+    def number : base, altura;
+    def string : nombre;
+
+    func set_base(number b): nothing {
+        base = b;
+    }
+
+    func set_altura(number a): nothing {
+        altura = a;
+    }
+
+    func set_nombre(string n): nothing {
+        nombre = n;
+    }
+}
+
+type Rectangulo : Figura {
+    func area_rect(): number {
+        def number : a;
+        a = base * altura;
+        call ret(a);
+    }
+
+    func get_area_rect(): number {
+        call ret( call area_rect() );
+    }
+}
+
+type Triangulo : Figura {
+    func area_tri(): number {
+        def number : a;
+        a = base * altura / 2;
+        call ret(a);
+    }
+
+    func get_area_tri(): number {
+        call ret( call area_tri() );
+    }
+}
+
+def number : aux;
+def Rectangulo : rect;
+def Triangulo : tria;
+
+main() {
+    # Rectangulo
+    call rect:set_nombre("rectangle");
+    call rect:set_base(8);
+    call rect:set_altura(5);
+    aux = call rect:get_area_rect();
+
+    call print( "Altura de" & rect:nombre & call to_string(aux) );
+
+    # Triangulo
+    call tria:set_nombre("triangle");
+    call tria:set_base(15);
+    call tria:set_altura(10);
+    aux = call tria:get_area_tri();
+
+    call print( "Altura de" & tria:nombre & call to_string(aux) );
+}
+
+end;

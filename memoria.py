@@ -1,3 +1,12 @@
+###------------------
+#   Memoria
+#   Clase manejar los recursos de un espacio de memoria
+#
+#   Instanciada por la máquina virtual cada que se llama a una función
+#   Para inicializarse debe recibir una lista que indique el tamaño del espacio asignado 
+#   a los registros de cada tipo
+###------------------
+
 from dirVirtuales import *
 
 class Memoria():
@@ -15,6 +24,9 @@ class Memoria():
         self.count_number_params = 0
         self.count_string_params = 0
 
+    '''
+    Función que identifica en qué lista va una dirección según las dirección virtual
+    '''
     def get_index(self, address):
         address = int(address)
         if address >= BASE_DIRGLOBALNUM_LI and address <= BASE_DIRGLOBALNUM_LS: # GLOBAL NUMBER
@@ -50,6 +62,9 @@ class Memoria():
         
         return indice, tipo
 
+    '''
+    Función que le asigna un valor a un espacio de memoria
+    '''
     def set_data(self, address, value):
         address = int(address)
         indice, tipo = self.get_index(address)
@@ -74,6 +89,9 @@ class Memoria():
 
         return True
 
+    '''
+    Función que obtiene el valor almacenado en un espacio de memoria
+    '''
     def get_data(self, address):
         indice, tipo = self.get_index(address)
         value = None
@@ -95,6 +113,9 @@ class Memoria():
 
         return value, tipo
 
+    '''
+    Función que asigna un parámetro a un espacio de memoria local
+    '''
     def set_parameter(self, value, type):
         if type == 0 or type == 5:
             self.number_type[self.count_number_params] = float(value)
@@ -103,6 +124,7 @@ class Memoria():
             self.string_type[self.count_string_params] = str(value)
             self.count_string_params += 1
 
+    # PRINT (pruebas)
     def print(self):
         print("NUM:", self.number_type)
         print("BOOL:", self.bool_type)

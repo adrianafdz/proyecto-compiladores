@@ -1,7 +1,7 @@
 program sort;
 
 def number : i, j, n, aux;
-def number[5] : arr;
+def number[8] : arr;
 
 main() {
     arr[0] = 21;
@@ -9,10 +9,13 @@ main() {
     arr[2] = 5;
     arr[3] = 78;
     arr[4] = 0;
+    arr[5] = 14;
+    arr[6] = 98;
+    arr[7] = 45;
 
     # Bubble sort
     i = 0;
-    n = 5;
+    n = 8;
 
     for 0 to n - 2 {
         

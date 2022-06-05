@@ -1,0 +1,44 @@
+program objetos;
+
+type Rectangulo {
+    def number : base, altura;
+    def string : nombre;
+
+    func set_base(number b): nothing {
+        base = b;
+    }
+
+    func set_altura(number a): nothing {
+        altura = a;
+    }
+
+    func set_nombre(string n): nothing {
+        nombre = n;
+    }
+
+    func area(): number {
+        def number : a;
+        a = base * altura;
+        call ret(a);
+    }
+
+    func get_area(): number {
+        call ret( call area() );
+    }
+
+}
+
+def number : aux;
+def Rectangulo : rect;
+
+main() {
+    # Rectangulo
+    call rect:set_nombre("rectangle");
+    call rect:set_base(8);
+    call rect:set_altura(6);
+    aux = call rect:get_area();
+
+    call print( "Altura de" & rect:nombre & call to_string(aux) );
+}
+
+end;
