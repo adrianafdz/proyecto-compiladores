@@ -273,7 +273,10 @@ while True:
         set_value(cuadruplo[3], new_val)
 
     elif cuadruplo[0] == 'PRINT':
-        texto, _ = get_value(cuadruplo[3])
-        print("<<",str(texto))
+        if cuadruplo[3] == "-1":
+            print("")
+        else:
+            texto, _ = get_value(cuadruplo[3])
+            print(str(texto), end=" ")
 
     pilaCurrCuadruplo[-1] += 1

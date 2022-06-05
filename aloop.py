@@ -1151,7 +1151,12 @@ def p_input(p):
         print("ERROR: Type mismatch, line:", lexer.lineno)
 
 def p_write(p):
-    '''write : PRINT '(' write_list ')' '''
+    '''write : PRINT '(' write_list ')' f_call_empty_print
+             | PRINT '(' ')' f_call_empty_print '''
+
+def p_f_call_empty_print(p):
+    '''f_call_empty_print :'''
+    cuadruplos.add("PRINT", -1, -1, -1)
 
 def p_write_list(p):
     '''write_list : write_list '&' write_listp
