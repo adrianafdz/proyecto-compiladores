@@ -222,8 +222,12 @@ def t_error(t):
 
 # End of file rule
 def t_eof(t):
-    if empty_file: print("Empty file")
-    if not found_error and not empty_file: print("Compilation successful\n") 
+    if empty_file: 
+        print("Empty file")
+    else:
+        if found_error:
+            raise Exception("Compilation failed") 
+        print("Compilation successful\n") 
 
 ####################################################
 # YACC (parser)
@@ -242,8 +246,12 @@ def p_f_start(p):
 
 def p_f_prog(p):
     "f_prog :"
-    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), curr_tipo) # agrega el nombre del programa al directorio de funciones
-    curr_func.append(p[-1]) # agrega el nombre del programa a la pila de funciones, la cual lleva registro de qué función se está compilando
+    global found_error
+    if curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), curr_tipo): # agrega el nombre del programa al directorio de funciones
+        curr_func.append(p[-1]) # agrega el nombre del programa a la pila de funciones, la cual lleva registro de qué función se está compilando
+    else:
+        print("ERROR: The function", p[-1], "already exists, line", lexer.lineno)
+        found_error = True
 
 def p_f_main(p):
     "f_main :"
@@ -279,15 +287,18 @@ def p_clase(p):
 
 def p_f_startclass(p):
     "f_startclass :"
-    global dirFuncObj, is_class
-    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), 5) # agrega el registro del objeto al directorio de funciones
-    curr_func.append(p[-1])
-    dirFuncObj = curr_dir[-1].create_dir_for_obj(curr_func[-1]) # crea un directorio de funciones para el objeto
-    is_class = True
+    global dirFuncObj, is_class, found_error
+    if curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), 5): # agrega el registro del objeto al directorio de funciones
+        curr_func.append(p[-1])
+        dirFuncObj = curr_dir[-1].create_dir_for_obj(curr_func[-1]) # crea un directorio de funciones para el objeto
+        is_class = True
+    else:
+        print("ERROR: The function", p[-1], "already exists, line", lexer.lineno)
+        found_error = True
 
 def p_f_clasepadre(p):
     "f_clasepadre :"
-    global dirFuncObj
+    global dirFuncObj, found_error
     tipo, mem = curr_dir[0].get_func(p[-1]) # revisa que exista ese id y que sí sea un objeto
     
     if tipo == 5: # objeto
@@ -336,8 +347,12 @@ def p_funcion(p):
 
 def p_f_startfunc(p):
     "f_startfunc :"
-    curr_dir[-1].add_func(p[-1], cuadruplos.get_cont()) # registra la función y en qué cuádruplo comienza
-    curr_func.append(p[-1])
+    global found_error
+    if curr_dir[-1].add_func(p[-1], cuadruplos.get_cont()): # registra la función y en qué cuádruplo comienza
+        curr_func.append(p[-1])
+    else:
+        print("ERROR: The function", p[-1], "already exists, line", lexer.lineno)
+        found_error = True
 
 def p_f_nothing(p):
     "f_nothing :"
@@ -347,7 +362,6 @@ def p_f_nothing(p):
 def p_f_tipofunc(p):
     "f_tipofunc :"
     curr_dir[-1].update_func_type(curr_func[-1], curr_tipo)
-
     if curr_tipo != 6:
         if len(curr_func) > 2: # se trata de metodo en un objeto
             if curr_tipo == 0:
@@ -419,15 +433,16 @@ def p_f_vars(p):
     "f_vars :"
     global dimension, found_error
     # Registro de variables
+    successful = True
     if is_class: # se están declarando atributos de un objeto
         if not mem_available("objeto", curr_tipo):
             print("ERROR: Stack overflow")
             found_error = True
 
         if curr_tipo == 0:
-            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirObjNum)
+            successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirObjNum)
         elif curr_tipo == 1:
-            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirObjStr)
+            successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirObjStr)
 
         if dimension is None:
             add_memory("objeto", curr_tipo, 1)
@@ -440,9 +455,9 @@ def p_f_vars(p):
             found_error = True
 
         if curr_tipo == 0:
-            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobalNum)
+            successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobalNum)
         elif curr_tipo == 1:
-            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobalStr)
+            successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirGlobalStr)
         
         if dimension is None:
             add_memory("global", curr_tipo, 1)
@@ -454,14 +469,18 @@ def p_f_vars(p):
             found_error = True
 
         if curr_tipo == 0:
-            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalNum)
+            successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalNum)
         elif curr_tipo == 1:
-            curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalStr)
+            successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalStr)
 
         if dimension is None:
             add_memory("local", curr_tipo, 1)
         else:
             add_memory("local", curr_tipo, dimension.get_size())
+
+    if not successful:
+        print("ERROR: The variable", p[-1], "already exists, line", lexer.lineno)
+        found_error = True
 
 def p_lista_id_obj(p): 
     '''lista_id_obj : ID f_vars_obj
@@ -476,7 +495,10 @@ def p_f_vars_obj(p):
         print("ERROR: Stack overflow")
         found_error = True
 
-    curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, None, [dirGlobalNum, dirGlobalStr])
+    successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, None, [dirGlobalNum, dirGlobalStr])
+    
+    if not successful:
+        found_error = True
 
     # toma todas los registros que ocupa segun los recursos
     add_memory("global", 0, obj_size[0])
@@ -529,19 +551,25 @@ def p_pparams(p):
 
 def p_f_param(p):
     "f_param :"
+    global found_error
     if not mem_available("local", curr_tipo):
         print("ERROR: Stack overflow")
         found_error = True
-    
+    successful = True
     # agrega los parámetros como variables locales
     if curr_tipo == 0:
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalNum)
+        successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalNum)
     elif curr_tipo == 1:
-        curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalStr)
+        successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalStr)
     
+    if not successful:
+        print("ERROR: The variable", p[-1], "already exists, line", lexer.lineno)
+        found_error = True
+
     add_memory("local", curr_tipo, 1)
     # registra el tipo para poder validar los parametros después
     curr_dir[-1].add_param(curr_func[-1], curr_tipo)
+    
 
 def p_estatutos(p):
     '''estatutos : estatutos estatuto 
@@ -566,6 +594,7 @@ def p_f_end_call(p):
 
 def p_f_gosub(p):
     "f_gosub :"
+    global found_error
     if check_obj[-1] is None:
         f_type, f_start = curr_dir[-1].get_func(function_call[-1])
 
@@ -579,6 +608,10 @@ def p_f_gosub(p):
         obj_funcs = curr_dir[0].get_dir_from_obj(obj_type) # trae el directorio de funciones de ese objeto
         f_type, f_start = obj_funcs.get_func(function_call[-1])
         cuadruplos.add("GOSUB", function_call[-1], obj_type, f_start)
+
+    if f_type == -1:
+        print("ERROR: Undeclared function", function_call[-1], ", line:", lexer.lineno)
+        found_error = True
 
 def p_func(p):
     '''func : ID  f_verify_func '(' args ')'
@@ -623,7 +656,7 @@ def p_f_verify_func_composite(p):
         function_call.append(p[-1])
 
         if f_type == -1:
-            print("ERROR: Undefined function, line:", lexer.lineno)
+            print("ERROR: Undeclared function", p[-1], ", line:", lexer.lineno)
             found_error = True
         else:
             param_list.append(obj_funcs.get_params(p[-1]))
@@ -1195,6 +1228,10 @@ def p_return(p):
     res_type = pilaTipos.pop()
 
     f_type, f_start = curr_dir[-1].get_func(curr_func[-1])
+
+    if f_type == -1:
+        print("ERROR: Undeclared function", curr_func[-1], ", line", lexer.lineno)
+        found_error = True
 
     if res_type == f_type or cubo.check('=', res_type, f_type) != -1:
         if len(curr_func) > 2: # es una funcion en un objeto

@@ -38,7 +38,7 @@ def get_compilation_info():
         with open("constantes.json", "r") as jsonFile:
             CONSTANTS = json.load(jsonFile)
     except:
-        print("Error while retrieving data from compilation")
+        raise Exception("Error while retrieving data from compilation")
 
 '''
 Función que obtiene los recursos de memoria que requiere una función
@@ -48,15 +48,15 @@ def get_resources(func_name, obj_name):
         if func_name in RESOURCES.keys():
             return RESOURCES[func_name]
         else:
-            print("Error while retrieving function data")
+            raise Exception("Error while retrieving function data")
     else:
         if obj_name in RESOURCES.keys():
             if func_name in RESOURCES[obj_name].keys():
                 return RESOURCES[obj_name][func_name]
             else:
-                print("Error while retrieving function data")
+                raise Exception("Error while retrieving function data")
         else:
-            print("Error while retrieving object data")
+            raise Exception("Error while retrieving object data")
 
     return None
 
@@ -70,8 +70,7 @@ def get_constant(const_dir):
         else:
             return str(CONSTANTS[str(const_dir)]['nombre']), 1
     else:
-        print("Error while retriving data from constants")
-        return None
+        raise Exception("Error while retriving data from constants")
 
 '''
 Función que obtiene el valor contenido en una dirección de la memoria
@@ -208,7 +207,7 @@ def operadores(signo, val1, val2):
 
         return res
     except:
-        print("ERROR: Invalid operation")
+        raise Exception("ERROR: Invalid operation")
 
 ##########################################################
 # MAIN
@@ -324,7 +323,7 @@ while True:
         if value >= lim_inf and value < lim_sup:
             pass
         else:
-            print("ERROR: Index out of bounds")
+            raise Exception("ERROR: Index out of bounds")
 
     elif cuadruplo[0] == "CNUM":
         new_val, _ = get_value(cuadruplo[1])

@@ -32,16 +32,13 @@ class dirFunc:
                 'params': list()
             }
         else:
-            print("Error: la funcion", str(nombre), "ya existe")
             return False
         return True
 
-    # Función que busca una función y regresa su tipo y en qué cuádruplo empieza
     def get_func(self, nombre):
         if nombre in self.dir_func:
             return (self.dir_func[nombre]['tipo'], self.dir_func[nombre]['inicio'])
         else:
-            print("Error: la funcion", str(nombre), "no existe")
             return (-1, -1)
 
     # Actualiza el tipo de una función (porque las funciones primero se dan de alta y luego se encuentra el tipo)
@@ -49,7 +46,6 @@ class dirFunc:
         if nombre in self.dir_func:
             self.dir_func[nombre]['tipo'] = tipo
         else:
-            print("Error: la funcion", str(nombre), "no existe")
             return False
         return True
 
@@ -58,7 +54,6 @@ class dirFunc:
         if nombre in self.dir_func:
             self.dir_func[nombre]['recursos'] = cantidades # [Num, Str, Bool, PtNum, PtStr]
         else:
-            print("Error: la funcion", str(nombre), "no existe")
             return False
         return True
 
@@ -69,11 +64,9 @@ class dirFunc:
     # memoria: dirección
     def add_var(self, func, nombre, tipo, dimension, memoria):
         if nombre not in self.dir_func:
-            self.dir_func[func]['vars'].add_var(nombre, tipo, dimension, memoria)
+            return self.dir_func[func]['vars'].add_var(nombre, tipo, dimension, memoria)
         else:
-            print("Error: la variable", str(nombre), "ya existe")
             return False
-        return True
 
     # Obtiene una variable de la función func
     # regresa el tipo y la direccion de memoria
@@ -105,7 +98,6 @@ class dirFunc:
             self.dir_func[nombre]['funcs'] = dirFunc()
             return self.dir_func[nombre]['funcs']
         else:
-            print("Error: el objeto", str(nombre), "no existe")
             return None
 
     # Obtiene la tabla de variables de la clase 'nombre'
@@ -113,7 +105,6 @@ class dirFunc:
         if nombre in self.dir_func:
             return self.dir_func[nombre]['vars']
         else:
-            print("Error: el objeto", str(nombre), "no existe")
             return None
 
     # Obtiene el directorio de funciones de la clase 'nombre'
@@ -121,7 +112,6 @@ class dirFunc:
         if nombre in self.dir_func:
             return self.dir_func[nombre]['funcs']
         else:
-            print("Error: el objeto", str(nombre), "no existe")
             return None
 
     # Obtiene la cantidad de recursos de la función o clase 'nombre'
@@ -129,7 +119,6 @@ class dirFunc:
         if nombre in self.dir_func:
             return self.dir_func[nombre]['recursos']
         else:
-            print("Error:", str(nombre), "no existe")
             return None
 
     # Obtiene la lista de parámetros de una función
@@ -137,7 +126,6 @@ class dirFunc:
         if nombre in self.dir_func:
             return self.dir_func[nombre]['params']
         else:
-            print("Error: la función", str(nombre), "no existe")
             return None
 
     # Copia el directorio de funciones de la clase padre a la clase hijo
@@ -160,7 +148,6 @@ class dirFunc:
 
             return True
         else:
-            print("Error: no existe la clase", str(padre))
             return False
             
     # Obtiene la dimensión de una variable, ya se None o una instancia de dimStructure

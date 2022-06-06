@@ -28,7 +28,7 @@ class tablaVars:
     # Agregar una variable a la tabla de variables
     def add_var(self, nombre, tipo, dimension, memoria, cte = False):
         if self.check_var(nombre):
-            print("Error: la variable", str(nombre), "ya existe")
+            print("ERROR: the variable", str(nombre), "already exists")
             return False
         else:
             self.tabla_vars[nombre] = {
