@@ -1175,7 +1175,8 @@ def p_to_num(p):
     '''to_num : TO_NUMBER '(' STR f_string ')' 
               | TO_NUMBER '(' var ')' '''
     global found_error
-    if pilaTipos.pop() == 1:
+    tipo = pilaTipos.pop()
+    if tipo == 1 or tipo == 4:
         cuadruplos.add("CNUM", pilaOperandos.pop(), -1, dirTempNum)
         pilaOperandos.append(dirTempNum)
         pilaTipos.append(0)
