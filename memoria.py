@@ -127,6 +127,8 @@ class Memoria():
     # PRINT (pruebas)
     def print(self):
         print("NUM:", self.number_type)
-        print("BOOL:", self.bool_type)
-        print("TEMP:", self.temp_number_type)
+        print("TEMPNUM:", self.temp_number_type)
         print("PNUM:", self.point_number_type)
+        print("BOOL:", self.bool_type)
+        print("STR", self.string_type)
+        print("TEMPSTR:", self.temp_string_type)

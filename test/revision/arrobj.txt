@@ -18,9 +18,11 @@ type objeto {
 def number : m;
 def number[3] : ar;
 def objeto : ob;
+def string[3] : str;
 
 main() {
     call ob:set_values(3, 5, 10);
+    str[0] = "h";
     ar[0] = 4;
     ar[1] = 1;
     ar[2] = 9;
@@ -28,7 +30,7 @@ main() {
     m = ar[ob:t[1]];
 
     call ob:imprmir();
-    call print( "m =" & call to_string(m) );
+    call print( "m =" & str[0] );
 }
 
 end;

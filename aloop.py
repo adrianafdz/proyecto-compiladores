@@ -250,7 +250,7 @@ def p_f_prog(p):
     if curr_dir[-1].add_func(p[-1], cuadruplos.get_cont(), curr_tipo): # agrega el nombre del programa al directorio de funciones
         curr_func.append(p[-1]) # agrega el nombre del programa a la pila de funciones, la cual lleva registro de qué función se está compilando
     else:
-        print("ERROR: The function", p[-1], "already exists, line", lexer.lineno)
+        print("ERROR: The function", p[-1], "already exists, line:", lexer.lineno)
         found_error = True
 
 def p_f_main(p):
@@ -293,7 +293,7 @@ def p_f_startclass(p):
         dirFuncObj = curr_dir[-1].create_dir_for_obj(curr_func[-1]) # crea un directorio de funciones para el objeto
         is_class = True
     else:
-        print("ERROR: The function", p[-1], "already exists, line", lexer.lineno)
+        print("ERROR: The function", p[-1], "already exists, line:", lexer.lineno)
         found_error = True
 
 def p_f_clasepadre(p):
@@ -351,7 +351,7 @@ def p_f_startfunc(p):
     if curr_dir[-1].add_func(p[-1], cuadruplos.get_cont()): # registra la función y en qué cuádruplo comienza
         curr_func.append(p[-1])
     else:
-        print("ERROR: The function", p[-1], "already exists, line", lexer.lineno)
+        print("ERROR: The function", p[-1], "already exists, line:", lexer.lineno)
         found_error = True
 
 def p_f_nothing(p):
@@ -479,7 +479,7 @@ def p_f_vars(p):
             add_memory("local", curr_tipo, dimension.get_size())
 
     if not successful:
-        print("ERROR: The variable", p[-1], "already exists, line", lexer.lineno)
+        print("ERROR: The variable", p[-1], "already exists, line:", lexer.lineno)
         found_error = True
 
 def p_lista_id_obj(p): 
@@ -563,7 +563,7 @@ def p_f_param(p):
         successful = curr_dir[-1].add_var(curr_func[-1], p[-1], curr_tipo, dimension, dirLocalStr)
     
     if not successful:
-        print("ERROR: The variable", p[-1], "already exists, line", lexer.lineno)
+        print("ERROR: The variable", p[-1], "already exists, line:", lexer.lineno)
         found_error = True
 
     add_memory("local", curr_tipo, 1)
@@ -703,10 +703,12 @@ def p_f_end_args(p):
 
 def p_asignacion(p):
     '''asignacion : var '=' f_oper expresion ';' '''
+    global found_error
     if cubo.check("=", pilaTipos.pop(), pilaTipos.pop()) != -1:
         cuadruplos.add(pilaOperadores.pop(), pilaOperandos.pop(), -1, pilaOperandos.pop())
     else:
         print("ERROR: Type mismatch, line:", lexer.lineno)
+        found_error = True
 
 def p_var(p):
     '''var : ID f_varobj ':' ID f_verify_type_composite f_index_obj indexacion f_end_check
@@ -899,6 +901,7 @@ def p_f_expres(p):
     else:
         if not mem_available("temp", tres):
             print("ERROR: Stack overflow")
+            found_error = True
         res = dirTempBool
         add_memory("temp", tres, 1)
         cuadruplos.add(oper, lo, ro, res)
@@ -928,6 +931,7 @@ def p_f_exp(p):
         else:
             if not mem_available("temp", tres):
                 print("ERROR: Stack overflow")
+                found_error = True
             res = dirTempNum
             add_memory("temp", tres, 1)
             cuadruplos.add(oper, lo, ro, res)
@@ -957,6 +961,7 @@ def p_f_term(p):
         else:
             if not mem_available("temp", tres):
                 print("ERROR: Stack overflow")
+                found_error = True
             res = dirTempNum
             add_memory("temp", 0, 1)
             cuadruplos.add(oper, lo, ro, res)
@@ -1008,6 +1013,7 @@ def p_f_concat(p):
         else:
             if not mem_available("temp", tres):
                 print("ERROR: Stack overflow")
+                found_error = True
             res = dirTempStr
             add_memory("temp", 1, 1)
             cuadruplos.add(oper, lo, ro, res)
@@ -1031,7 +1037,7 @@ def p_f_fact(p):
 
 def p_f_return_val(p):
     "f_return_val :"
-    
+    global found_error
     func_name = function_call[-1]
     
     if check_obj[-1] is not None: # metodo de un objeto
@@ -1050,7 +1056,8 @@ def p_f_return_val(p):
             ret_type, ret_mem = curr_dir[-1].get_return_value(curr_func[0], func_name)
 
     if ret_type == -1:
-        print("ERROR: No return value, line", lexer.lineno)
+        print("ERROR: No return value, line:", lexer.lineno)
+        found_error = True
     else:
         if ret_type == 0:
             cuadruplos.add("=", ret_mem, -1, dirTempNum)
@@ -1071,6 +1078,7 @@ def p_condicionp(p):
 
 def p_f_if(p):
     "f_if :"
+    global found_error
     exp_type = pilaTipos.pop()
     if exp_type == 2: # debe ser booleana
         res = pilaOperandos.pop()
@@ -1078,6 +1086,7 @@ def p_f_if(p):
         pilaSaltos.append(cuadruplos.get_cont() - 1)
     else:
         print("ERROR: Type mismatch, line:", lexer.lineno)
+        found_error = True
 
 def p_f_endif(p):
     "f_endif :"
@@ -1100,6 +1109,7 @@ def p_f_while(p):
 
 def p_f_exprwhile(p):
     "f_exprwhile :"
+    global found_error
     exp_type = pilaTipos.pop()
     if exp_type == 2:
         res = pilaOperandos.pop()
@@ -1107,6 +1117,7 @@ def p_f_exprwhile(p):
         pilaSaltos.append(cuadruplos.get_cont() - 1)
     else:
         print("ERROR: Type mismatch, line:", lexer.lineno)
+        found_error = True
 
 def p_f_endwhile(p):
     "f_endwhile :"
@@ -1188,10 +1199,12 @@ def p_to_str(p):
 def p_input(p):
     '''input : INPUT '(' var ')' '''
     tipo = pilaTipos.pop()
+    global found_error
     if tipo == 1 or tipo == 4:
         cuadruplos.add("READ", -1, -1, pilaOperandos.pop())
     else:
         print("ERROR: Type mismatch, line:", lexer.lineno)
+        found_error = True
 
 def p_write(p):
     '''write : PRINT '(' write_list ')' f_call_empty_print
@@ -1209,10 +1222,13 @@ def p_write_listp(p):
     '''write_listp : STR f_string
                    | var 
                    | CALL to_str'''    
-    if pilaTipos.pop() == 1:
+    global found_error
+    tipo = pilaTipos.pop()
+    if tipo == 1 or tipo == 4:
         cuadruplos.add("PRINT", -1, -1, pilaOperandos.pop())
     else:
         print("ERROR: Type mismatch, line:", lexer.lineno)
+        found_error = True
 
 def p_f_string(p):
     "f_string :"
@@ -1230,7 +1246,7 @@ def p_return(p):
     f_type, f_start = curr_dir[-1].get_func(curr_func[-1])
 
     if f_type == -1:
-        print("ERROR: Undeclared function", curr_func[-1], ", line", lexer.lineno)
+        print("ERROR: Undeclared function", curr_func[-1], ", line:", lexer.lineno)
         found_error = True
 
     if res_type == f_type or cubo.check('=', res_type, f_type) != -1:
@@ -1241,7 +1257,7 @@ def p_return(p):
             if ( res_type == 0 or res_type == 3 ) and mem_available("objeto", 0):
                 cuadruplos.add("RET", res, -1, ret_mem)
 
-            elif ( res_type == 1 or res_type == 3 ) and mem_available("objeto", 1):
+            elif ( res_type == 1 or res_type == 4 ) and mem_available("objeto", 1):
                 cuadruplos.add("RET", res, -1, ret_mem)
                 
             else:
@@ -1287,6 +1303,7 @@ parser = yacc.yacc(start='start')
 
 nombre = input('Nombre del archivo: ')
 print("")
+
 f = open("./test/revision/" + nombre, "r")
 # f = open(nombre, "r")
 
