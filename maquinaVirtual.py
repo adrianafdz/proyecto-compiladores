@@ -198,10 +198,6 @@ def operadores(signo, val1, val2):
             res = resOpeBool(val1 != val2)
         elif signo == '==':
             res = resOpeBool(val1 == val2)
-        elif  signo == '<>':
-            res = resOpeBool(val1 != val2)
-        elif signo == '==':
-            res = resOpeBool(val1 == val2)
         elif signo == '&':
             res = val1 + val2
 
