@@ -2,6 +2,7 @@ program arreglosObjetos;
 
 
 type objeto {
+    def number : a;
     def number[3] : t;
 
     func set_values(number a, number b, number c): nothing {
@@ -26,11 +27,12 @@ main() {
     ar[0] = 4;
     ar[1] = 1;
     ar[2] = 9;
+    ob:a = 3;
     ob:t[1] = 2;
     m = ar[ob:t[1]];
 
     call ob:imprmir();
-    call print( "m =" & str[0] );
+    call print( "m =" & call to_string(m) );
 }
 
 end;

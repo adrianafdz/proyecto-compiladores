@@ -777,8 +777,9 @@ def p_f_end_check(p):
 
 def p_f_index_obj(p):
     "f_index_obj :"
-    obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1])
-    cuadruplos.add("OBJIND", obj_mem[0], obj_mem[1], -1)
+    if has_dim:
+        obj_type, obj_mem = curr_dir[0].get_var(curr_func[0], check_obj[-1])
+        cuadruplos.add("OBJIND", obj_mem[0], obj_mem[1], -1)
 
 # Dimensiones al indexar un arreglo o matriz
 def p_indexacion(p):
