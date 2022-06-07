@@ -1,0 +1,64 @@
+program pruebas;
+
+def number : i, j, size, aux;
+def number[3][3] : mat;
+
+func f1(): nothing {
+    def number : x;
+    x = 0;
+    call print ("While dentro de funcion1: ");
+    while(x < 5) do {
+        call print ( call to_string(x) );
+        x = x + 1;
+    }
+}
+
+func f2(): nothing {
+    def number : x, y;
+    x = 1;
+    y = 2 * 2;
+    call print ("For dentro de funcion2: ");
+    for x to y {
+        call print ( call to_string(x) );
+        x = x + 1;
+    }
+}
+
+main() {
+    call f1();
+    call f2();
+    call print();
+
+    mat[0][0] = 1;
+    mat[0][1] = 2;
+    mat[0][2] = 3;
+    mat[1][0] = 4;
+    mat[1][1] = 5;
+    mat[1][2] = 6;
+    mat[2][0] = 7;
+    mat[2][1] = 8;
+    mat[2][2] = 9;
+
+    size = 3;
+    aux = 7;
+    if ( aux < 6 ) then {
+        
+        call print ("Matriz = ");
+        i = 0;
+        for 0 to size - 1 {
+            j = 0;
+            for 0 to size - 1 {
+                call print ( call to_string(mat[i][j]) );
+                j = j + 1;
+            }
+            call print();
+            i = i + 1;
+        }
+
+    } else {
+        call print ("Hola" & "Mundo");
+    }
+
+}
+
+end;

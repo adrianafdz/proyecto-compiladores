@@ -52,7 +52,7 @@ main() {
     call rect:set_altura(5);
     aux = call rect:get_area_rect();
 
-    call print( "Altura de" & rect:nombre & call to_string(aux) );
+    call print( "Area de" & rect:nombre & call to_string(aux) );
 
     # Triangulo
     call tria:set_nombre("triangle");
@@ -60,7 +60,7 @@ main() {
     call tria:set_altura(10);
     aux = call tria:get_area_tri();
 
-    call print( "Altura de" & tria:nombre & call to_string(aux) );
+    call print( "Area de" & tria:nombre & call to_string(aux) );
 }
 
 end;

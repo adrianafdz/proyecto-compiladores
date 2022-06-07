@@ -1,1 +1,1 @@
-{"arreglosObjetos": [22, 4, 0, 6, 1], "objeto": {"set_values": [9, 0, 0, 3, 0], "imprmir": [6, 3, 0, 3, 0]}}
+{"herencia": [11, 4, 0, 0, 0], "Figura": {"set_base": [1, 0, 0, 0, 0], "set_altura": [1, 0, 0, 0, 0], "set_nombre": [0, 1, 0, 0, 0]}, "Rectangulo": {"set_base": [1, 0, 0, 0, 0], "set_altura": [1, 0, 0, 0, 0], "set_nombre": [0, 1, 0, 0, 0], "area_rect": [2, 0, 0, 0, 0], "get_area_rect": [1, 0, 0, 0, 0]}, "Triangulo": {"set_base": [1, 0, 0, 0, 0], "set_altura": [1, 0, 0, 0, 0], "set_nombre": [0, 1, 0, 0, 0], "area_tri": [3, 0, 0, 0, 0], "get_area_tri": [1, 0, 0, 0, 0]}}

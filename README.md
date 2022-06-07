@@ -1,10 +1,16 @@
-# Lenguaje de programacion ALOOP
+# Lenguaje de programación ALOOP
 
-# Requerimientos:
+## Requerimientos:
 - Libreria PLY
 
-## Informacion:
-Dentro de este lenguaje de programacion orientado a objetos se tienen los tipos de datos:
+## Manual de usuario:
+- Puedes encontrarlo en la siguiente liga [Manual de Usuario](https://docs.google.com/document/d/1rLIgtuoYGWiibsKG82S3ZxK-QLvmWhS3-Ir1rftCOUc/edit?usp=sharing).
+
+## Demo de ejecución:
+- Se encuentra dentro de la liga [Demo Aloop](https://youtu.be/6eIn2McpHL0).
+
+## Información:
+Dentro de este lenguaje de programación orientado a objetos se tienen los tipos de datos:
 - number
 - string
 - objeto
@@ -69,25 +75,28 @@ De manera similar, para llamar a un método de una clase la sintaxis es:
 
 
 ## Primer Avance
-Análisis Léxico y Sintáctico.
+Durante esta semana se realizó la propuesta del lenguaje, desarrollando la gramática, type matching, diagramas de sintaxis y tokens. Se codificó la parte del lexer.
 
 ## Segundo Avance
-Tabla de Variables y Cubo Semántico.
+Se codificó toda la parte del parser basado en la gramática propuesta.
 
 ## Tercer Avance
-Generación de código de expresiones y estatutos secuenciales.
+Se codificó lo relacionado a la generación de cuádruplos de expresiones y las clases para manejar el directorio de funciones, la tabla de variables, el cubo semántico y los cuádruplos.
 
 ## Cuarto Avance
-Generación de código para condicionales (if-else) y bucles (while).
+Se implementó código para la semántica de variables y funciones y para el manejo de directorios. Se desarrolló la parte de generación de código intermedio para los estatutos if y while. También se comenzaron a utilizar direcciones virtuales.
 
 ## Quinto Avance
-Generación de cuádruplos del bucle for, generación de cuádruplos de funciones, uso de direcciones virtuales, validación de parámetros y argumentos
+Se desarrolló la generación de código intermedio para el estatuto for, las funciones y la validación de parámetros. También se implementó el cálculo de recursos de las funciones y la generación de un archivo de código intermedio.
+Se hizo un cambio en la gramática original. Hicimos la diferenciación de la declaración de arreglos y su indexación. Esto para poder hacer los cálculos correspondientes de la indexación y para limitar la declaración para que solo acepte números y no expresiones.
 
 ## Sexto Avance 
-Generación de cuádruplos para arreglos de una y dos dimensiones, generación de máquina virtual.
+Se desarrolló e implementó la clase dimStructure para el manejo de arreglos y matrices. Se desarrolló la lógica para manejar valores de retorno y se dividieron las direcciones virtuales que se tenían antes para manejarlas por tipo. Se comenzó a desarrollar la máquina virtual.
+Se hizo un cambio a la gramática para no permitir que dentro de las funciones se declaren objetos. Es decir, solo existen los objetos globales.
 
 ## Séptimo Avance 
-Se realizaron unos ajustes dentro de los parámetros y objetos en el compilador y se añadieron funciones a la Máquina Virtual.
+Generación de código de arreglos. Se implementó la lógica para el manejo de objetos, herencia y apuntadores. Se modificó el cubo semántico para incluir apuntadores. Se desarrolló la generación de código para manejar variables dimensionadas. Para la máquina virtual se desarrolló lo relacionado a las expresiones y estatutos read y print.
 
 ## Octavo Avance
-Se generaron archivos .json para los recursos y las constantes y que la máquina virtual pueda acceder a ellos, la funcionalidad de la máquina virtual y el primer avance de la documentación final la cual incluye el Manual de Usuario
+Se implementó la creación de archivos para almacenar información sobre los recursos y constantes. Se modificó la lógica para el manejo de valores de retorno y se mejoró la detección y mensajes de error.
+Se modificó la gramática original para aceptar strings en las expresiones, para que las funciones to_number y to_string solo se acepten en una expresión y para que la función print acepte cero argumentos. Se crearon nuevos cuádruplos para el manejo de objetos y arreglos (OBJREF, MEMBER, OBJIND, STARR).
